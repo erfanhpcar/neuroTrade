@@ -2,18 +2,6 @@
 
 ## Active Issues
 
-### ISSUE-0001 — Phase 0 foundation is incomplete
-- Status: IN_PROGRESS
-- Severity: MEDIUM
-- Area: Infrastructure
-- Found in: Phase 0 / repository root
-- Description: FastAPI health, Next.js operator shell, trading-worker heartbeat stub, Dockerfiles, Compose, and `.github/workflows/ci.yml` now exist. Compose was previously verified with `docker compose up`. Phase 0 Definition of Done still requires the GitHub Actions workflow to be green on this branch.
-- Why it matters: Checklist items are not Done until the gated CI run actually passes.
-- Suggested options: Keep this issue open until the first `backend-check` / `frontend-check` GitHub run is green, then close Phase 0.
-- Recommended next action: Do not start Phase 1 domain/schema until CI is green on GitHub. After that, the next smallest Phase 1 task is domain models (not schema yet).
-- Created: 2026-08-27
-- Last reviewed: 2026-08-27
-
 ### ISSUE-0002 — Python dependencies are not locked
 - Status: OPEN
 - Severity: LOW
@@ -46,7 +34,7 @@
 - Description: Parallel automation runs produced overlapping Phase 0 drafts. This increment continues PR #5 (`cursor/development-agent-guidelines-f710`: FastAPI + Next.js + Compose/worker). PR #2 (`cursor/phase0-foundation-scaffold-1e99`) was used only as a CI workflow-shape reference; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
 - Why it matters: Merging PR #2 blindly would fork the health API.
 - Suggested options: Continue this lineage. Close or rebase superseded drafts after human review.
-- Recommended next action: Human review should treat the PR #3/#4/#5 lineage plus this CI increment as current Phase 0.
+- Recommended next action: Human review should treat PR #6 (`cursor/phase0-github-actions-ci`) as current Phase 0. Close or rebase superseded drafts #2/#3/#4/#5 after review.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -70,11 +58,23 @@
 - Description: `docs/14` says worker heartbeat lives in DB/Redis. Phase 0 implements a process-isolated heartbeat stub that emits structured logs only. No Redis client was added, so Redis remains unused infrastructure until a consumer exists.
 - Why it matters: The dashboard cannot yet detect a stale worker. Adding `redis` now would be a new runtime dependency without an API/UI reader, and unit tests would need a fake Redis.
 - Suggested options: Keep log-only heartbeat until `/api/system/status` (or an equivalent readiness field) is specified to read it. Then persist heartbeat to Redis with TTL as cache/coordination, not as trading source of truth.
-- Recommended next action: Do not add a Redis client in the CI increment. Wire heartbeat storage when the status contract is implemented.
+- Recommended next action: Keep log-only heartbeat for now. Wire Redis/DB heartbeat when `/api/system/status` is specified in Phase 8 or when a worker-staleness consumer exists.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
 ## Resolved Issues
+
+### ISSUE-0001 — Phase 0 foundation is incomplete
+- Status: RESOLVED
+- Severity: MEDIUM
+- Area: Infrastructure
+- Found in: Phase 0 / repository root
+- Description: FastAPI health, Next.js operator shell, trading-worker heartbeat stub, Dockerfiles, Compose, and `.github/workflows/ci.yml` exist. Compose was verified with `docker compose up` on the prior increment. GitHub Actions run 33101838301 is green (`backend-check` 25s, `frontend-check` 42s).
+- Why it matters: Phase 0 Definition of Done required Compose plus gated CI.
+- Suggested options: n/a
+- Recommended next action: Start Phase 1 with framework-independent domain models only. Do not add SQLAlchemy/migrations in the same increment as the first domain types.
+- Created: 2026-08-27
+- Last reviewed: 2026-08-27
 
 ### ISSUE-0009 — Frontend rewrite destination is baked at image build
 - Status: RESOLVED

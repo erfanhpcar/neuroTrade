@@ -33,11 +33,11 @@ Context: `AGENTS.md`, `00_INDEX`, `01_ARCH_OVERVIEW`, `09_PROJECT_TREE`, `14_DOC
 - [x] Compose برای postgres/redis/backend/trading-worker/frontend.
 - [x] `.env.example` و `.gitignore`.
 - [x] structured logging با correlation/request IDs.
-- [x] CI: backend tests/lint/typecheck + frontend lint/typecheck/build. *(`make backend-check` + `make frontend-check` via `.github/workflows/ci.yml`; first GitHub run must stay green)*
+- [x] CI: backend tests/lint/typecheck + frontend lint/typecheck/build. *(`make backend-check` + `make frontend-check` via `.github/workflows/ci.yml`; GitHub run 33101838301 green)*
 - [x] commandهای canonical پروژه برای checkها مستند شوند تا Cursor/Codex یک toolchain مشترک اجرا کنند.
 - [x] default `TRADING_MODE=PAPER`.
 
-**Done:** `docker compose up` کل stack را بالا بیاورد و CI سبز باشد. **Phase 0 is not Done** until the GitHub Actions workflow is green on this branch.
+**Done:** Compose stack and GitHub Actions CI are verified. Phase 0 is complete. Remaining follow-ups (Python lockfile, Redis heartbeat consumer, Next 16) are tracked in `docs/17_DEVELOPMENT_ISSUES.md` and are not Phase 0 blockers.
 
 ---
 

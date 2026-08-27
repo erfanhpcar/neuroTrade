@@ -43,10 +43,12 @@ Copy `.env.example` to `.env` for backend overrides. Copy `frontend/.env.example
 
 ## Current status
 
-Phase 0 (Repository Foundation) is in progress:
+Phase 0 (Repository Foundation) is complete:
 
 - Backend FastAPI control plane and `GET /api/health` exist.
 - Next.js operator shell displays liveness and trading mode (PAPER by default).
 - Compose defines postgres, redis, backend, trading-worker, and frontend with `TRADING_MODE=PAPER`.
 - Trading worker is a heartbeat stub (no Strategy/Risk/Execution).
-- GitHub Actions CI runs the canonical backend and frontend checks. Phase 0 Definition of Done still requires a green CI run on GitHub plus a healthy Compose stack.
+- GitHub Actions CI runs the canonical backend and frontend checks and is green.
+
+Next work is Phase 1 domain models. Do not enable live trading.

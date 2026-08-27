@@ -26,6 +26,18 @@
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
+### ISSUE-0004 — Starlette TestClient warns that `httpx` is deprecated in favor of `httpx2`
+- Status: OPEN
+- Severity: LOW
+- Area: Testing
+- Found in: `make backend-check` / FastAPI 0.141.1 TestClient
+- Description: Pytest emits `StarletteDeprecationWarning: Using httpx with starlette.testclient is deprecated; install httpx2 instead.` Tests still pass.
+- Why it matters: Future Starlette versions may require a new HTTP test client. Adding `httpx2` now would be a new dependency without an approved need.
+- Suggested options: Keep `httpx` until CI exists and Starlette requires the change; then add `httpx2` as a dev extra only.
+- Recommended next action: Do not add a new dependency in this run. Revisit when frontend/CI work lands or if tests start failing.
+- Created: 2026-08-27
+- Last reviewed: 2026-08-27
+
 ## Resolved Issues
 
 ### ISSUE-0003 — Health endpoint payload was unspecified

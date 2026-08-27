@@ -12,6 +12,14 @@
 6. AI در MVP الزامی نیست و حق دور زدن Risk/Execution را ندارد.
 7. توسعه به ترتیب `Research → Backtest → Paper → Testnet/SEMI → Live` انجام می‌شود.
 8. معماری به صرافی خاص وابسته نیست؛ Market Data Provider و Execution Provider آداپتر دارند.
+9. هر coding agent قبل از تغییر پروژه باید `AGENTS.md` و Ruleهای scoped مربوط به مسیر را رعایت کند.
+
+## قوانین Cursor / Codex
+
+- `AGENTS.md` در ریشه: قواعد مشترک کل repository برای Codex و Cursor.
+- `backend/AGENTS.md` و `frontend/AGENTS.md`: قواعد تخصصی هر بخش.
+- `.cursor/rules/*.mdc`: Ruleهای persistent/scoped مخصوص Cursor.
+- `16_CODING_AGENT_GUIDELINES.md`: توضیح کامل workflow، coding standards و trading safety policy.
 
 ## نقشه اسناد
 
@@ -31,7 +39,8 @@
 | `12_API_COST_RATE_LIMITS.md` | هزینه داده، rate limit، WebSocket/REST policy |
 | `13_STRATEGY_GOVERNANCE.md` | نسخه‌بندی، promotion، post-mortem، rollback |
 | `14_DOCKER_DEPLOYMENT.md` | Docker Compose و سرویس‌ها |
-| `15_CURSOR_IMPLEMENTATION_CHECKLIST.md` | چک‌لیست اجرایی گام‌به‌گام برای Cursor |
+| `15_CURSOR_IMPLEMENTATION_CHECKLIST.md` | چک‌لیست Phase-by-Phase؛ برای Cursor و Codex قابل استفاده است |
+| `16_CODING_AGENT_GUIDELINES.md` | قوانین کدنویسی و خط‌مشی کار با Cursor/Codex |
 
 ## ترتیب پیاده‌سازی
 
@@ -64,4 +73,4 @@
 | AI | خاموش/اختیاری در MVP |
 | Deployment | Docker Compose |
 
-> وضعیت فعلی مخزن: فاز طراحی. قبل از ایجاد کد اجرایی، اسناد 00 تا 15 باید مرجع Cursor باشند.
+> وضعیت فعلی مخزن: فاز طراحی. قبل از ایجاد کد اجرایی، اسناد 00 تا 16 و Ruleهای repository باید مرجع coding agent باشند.

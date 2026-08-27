@@ -48,3 +48,4 @@ def test_domain_package_does_not_import_execution_or_workers() -> None:
                 assert not node.module.startswith("app.workers")
                 assert not node.module.startswith("app.api")
                 assert not node.module.startswith("app.main")
+                assert not node.module.startswith("app.infrastructure")

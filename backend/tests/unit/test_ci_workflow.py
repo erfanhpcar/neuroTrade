@@ -46,3 +46,13 @@ def test_ci_is_read_only_and_does_not_reference_secrets() -> None:
         assert "api_key" not in lowered
         assert "api_secret" not in lowered
         assert "exchange_api" not in lowered
+
+
+def test_ci_backend_job_uses_postgres_for_migrations() -> None:
+    text = _ci_text()
+    assert "postgres:16-alpine" in text
+    assert 'NEUROTRADE_REQUIRE_DB: "1"' in text
+    assert (
+        "postgresql+asyncpg://neurotrade:neurotrade_dev_password@localhost:5432/neurotrade" in text
+    )
+    assert "TRADING_MODE: PAPER" in text

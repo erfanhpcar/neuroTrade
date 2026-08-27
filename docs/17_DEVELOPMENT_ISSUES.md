@@ -2,6 +2,30 @@
 
 ## Active Issues
 
+### ISSUE-0012 — Repository layer is not started
+- Status: OPEN
+- Severity: LOW
+- Area: Database
+- Found in: Phase 1 persistence increment / `backend/app/infrastructure/db/`
+- Description: SQLAlchemy models, Alembic revision `d587f5e75b76`, and domain↔ORM mapping exist. There is a session factory, but no repository API or explicit unit-of-work helpers for signals/orders/fills.
+- Why it matters: Callers could otherwise scatter session/commit logic and blur transaction boundaries around future network calls.
+- Suggested options: Add a small repository layer next, reusing these ORM rows and mapping functions. Do not introduce a second domain model.
+- Recommended next action: Implement repositories with explicit transaction boundaries. Do not start Phase 2 market data until that checklist item is done.
+- Created: 2026-08-27
+- Last reviewed: 2026-08-27
+
+### ISSUE-0013 — Processes do not auto-run migrations on startup
+- Status: OPEN
+- Severity: LOW
+- Area: Infrastructure
+- Found in: `docs/14_DOCKER_DEPLOYMENT.md` / FastAPI and trading-worker entrypoints
+- Description: `docs/14` says migrations should be checked before processing. This increment adds `make backend-migrate` and CI Postgres, but neither the control plane nor the worker runs Alembic at process start.
+- Why it matters: A freshly composed API could boot against an empty schema. Auto-migrate-on-start is an operational choice (expand/migrate job vs in-process).
+- Suggested options: Keep explicit `alembic upgrade` for now; add a Compose/CI migrate step or a dedicated migrate command before worker start once repositories exist.
+- Recommended next action: Do not auto-migrate inside the HTTP process. Decide a startup migrate path when the worker actually reads trading tables.
+- Created: 2026-08-27
+- Last reviewed: 2026-08-27
+
 ### ISSUE-0010 — Order terminal transitions were underspecified
 - Status: OPEN
 - Severity: MEDIUM
@@ -55,10 +79,10 @@
 - Severity: MEDIUM
 - Area: Docs
 - Found in: GitHub PRs #2, #3, #4, #5, #6
-- Description: Parallel automation runs produced overlapping Phase 0 drafts. Current implementation lineage is PR #6 (`cursor/phase0-github-actions-ci`) plus this Phase 1 domain-model increment. PR #2 (`cursor/phase0-foundation-scaffold-1e99`) was used only as a CI workflow-shape reference; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
+- Description: Parallel automation runs produced overlapping Phase 0 drafts. Current implementation lineage is PR #7 (`cursor/development-agent-guidelines-58b8`, stacked on PR #6) plus this persistence increment. PR #2 (`cursor/phase0-foundation-scaffold-1e99`) was used only as a CI workflow-shape reference; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
 - Why it matters: Merging PR #2 blindly would fork the health API.
 - Suggested options: Continue this lineage. Close or rebase superseded drafts after human review.
-- Recommended next action: Human review should treat PR #6 as current Phase 0 and this branch as Phase 1 domain models stacked on it. Close or rebase superseded drafts #2/#3/#4/#5 after review.
+- Recommended next action: Human review should treat PR #7 as current Phase 1 domain models and this persistence increment as stacked on it. Close or rebase superseded drafts #2/#3/#4/#5 after review.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -96,7 +120,7 @@
 - Description: FastAPI health, Next.js operator shell, trading-worker heartbeat stub, Dockerfiles, Compose, and `.github/workflows/ci.yml` exist. Compose was verified with `docker compose up` on the prior increment. GitHub Actions run 33101838301 is green (`backend-check` 25s, `frontend-check` 42s).
 - Why it matters: Phase 0 Definition of Done required Compose plus gated CI.
 - Suggested options: n/a
-- Recommended next action: Start the next Phase 1 increment: SQLAlchemy async + Alembic migrations for the documented tables, including unique `client_order_id`. Do not add a second domain model layer.
+- Recommended next action: Implement the repository layer on top of the Alembic schema (`uq_orders_client_order_id` already exists). Do not add a second domain model layer.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 

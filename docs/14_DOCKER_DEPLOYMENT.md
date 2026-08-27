@@ -61,7 +61,7 @@ Secret واقعی commit نشود.
 - default mode = `PAPER`
 - startup worker در صورت config ناقص private API نباید به Live fallback کند
 - `FULL` از env تصادفی فعال نشود؛ نیازمند persisted explicit state + deployment policy
-- قبل از processing، migrations و DB health بررسی شوند
+- قبل از processing، migrations و DB health بررسی شوند. Phase 1: `make backend-migrate`. API/worker do not auto-run Alembic on startup yet.
 
 ## health
 

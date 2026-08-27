@@ -23,7 +23,7 @@ neuroTrade/
 │   ├── app/
 │   │   ├── main.py               # FastAPI control plane
 │   │   ├── config.py             # TRADING_MODE default PAPER
-│   │   ├── domain/               # Phase 1 in-memory models; no ORM yet
+│   │   ├── domain/               # framework-independent dataclasses
 │   │   │   ├── market.py
 │   │   │   ├── signal.py
 │   │   │   ├── risk.py
@@ -61,12 +61,14 @@ neuroTrade/
 │   │   │   ├── positions.py
 │   │   │   └── backtests.py
 │   │   ├── infrastructure/
-│   │   │   ├── db/
+│   │   │   ├── db/                    # SQLAlchemy models + mapping; not domain
 │   │   │   ├── redis/
 │   │   │   └── logging/
 │   │   └── workers/
 │   │       ├── trading_worker.py      # Phase 0 heartbeat stub
 │   │       └── market_data_worker.py  # later
+│   ├── alembic/                       # PostgreSQL migrations
+│   ├── alembic.ini
 │   ├── tests/
 │   │   ├── unit/
 │   │   ├── integration/

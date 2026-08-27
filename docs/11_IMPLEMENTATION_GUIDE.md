@@ -1,87 +1,163 @@
 # 11 — Implementation Guide
 
-## Development order
+## قبل از هر کد
 
-### Phase A — Foundation
+چه با Cursor و چه با Codex، agent باید به‌ترتیب این منابع را رعایت کند:
+
+1. `AGENTS.md` در ریشه؛
+2. nested `AGENTS.md` مسیر هدف (`backend/AGENTS.md` یا `frontend/AGENTS.md`)؛
+3. `docs/00_INDEX.md`؛
+4. سندهای subsystem مربوط به Phase؛
+5. `docs/16_CODING_AGENT_GUIDELINES.md`؛
+6. برای Cursor، Ruleهای `.cursor/rules/*.mdc` نیز به صورت persistent/scoped اعمال می‌شوند.
+
+Checklist اجرایی canonical: `15_CURSOR_IMPLEMENTATION_CHECKLIST.md` (با وجود نام تاریخی فایل، برای Cursor و Codex یکسان است).
+
+## اصل توسعه
+
+هر فاز یک خروجی قابل تست می‌سازد. به فاز بعدی نرو تا Definition of Done فاز فعلی پاس نشده باشد.
+
+## فازها
+
+### Phase 0 — Foundation
+
 - monorepo skeleton
-- Docker Compose: postgres, redis, backend, trading-worker, frontend
-- config validation
-- structured logging
-- CI: lint + typecheck + tests
-- health endpoints
+- Docker Compose
+- FastAPI health
+- Next.js shell
+- PostgreSQL/Redis
+- trading-worker process
+- CI
+- `.env.example`
+- canonical lint/typecheck/test commands
 
-### Phase B — Market Data
+**Done:** Compose healthy + CI green + default PAPER.
+
+### Phase 1 — Domain/Persistence
+
+- domain types
+- migrations
+- repositories
+- state machines
+- idempotency fields
+
+**Done:** empty DB migration + rollback/recovery test.
+
+### Phase 2 — Market Data
+
 - provider interface
-- Bybit/Binance public adapter
-- historical OHLCV downloader
-- Parquet dataset metadata/hash
-- live ticker/candle WebSocket
-- gap/missing candle detection
+- public provider
+- historical downloader
+- Parquet
+- WebSocket
+- validation/gap detection
 
-### Phase C — Strategy V1
-- domain models
-- Strategy protocol
-- trend/momentum V1
-- deterministic replay tests
-- no-look-ahead tests
+**Done:** reproducible BTC dataset + live snapshot.
 
-### Phase D — Backtest
-- market simulator
-- fees/slippage/funding
-- portfolio accounting
+### Phase 3 — Strategy V1
+
+- Strategy interface
+- trend/momentum implementation
+- config/version/hash
+- deterministic tests
+
+**Done:** same input => same signals; no look-ahead.
+
+### Phase 4 — Backtest
+
+- simulator
+- execution costs
 - metrics
-- OOS + walk-forward runner
-- experiment persistence
+- OOS/walk-forward
+- reproducibility manifest
 
-### Phase E — Risk & Portfolio
-- position sizing
-- risk limits
-- atomic exposure reservation
-- HALT state
-- tests for race/boundaries
+**Done:** repeatable report with realistic assumptions.
 
-### Phase F — Paper Execution
-- PaperExecutionAdapter
-- order/position state machines
-- fills
-- reconciliation loop
+### Phase 5 — Risk/Portfolio
+
+- equity/exposure
+- risk reservation
+- sizing
+- limits/HALT
+
+**Done:** execution unreachable without Risk approval.
+
+### Phase 6 — Paper Execution/Reconciliation
+
+- adapter contract
+- paper adapter
+- order/fill/position state
 - restart recovery
+- reconciliation
 
-### Phase G — API/UI
-- REST + WebSocket
+**Done:** duplicate/timeout/restart tests pass.
+
+### Phase 7 — Worker
+
+- event/schedule loop
+- pipeline
+- heartbeat
+- graceful shutdown/recovery
+
+**Done:** sustained PAPER run without divergence.
+
+### Phase 8 — API/UI
+
+- REST/WS
 - dashboard
-- signals/orders/positions/backtests/risk
 - SEMI approval
-- HALT + FLATTEN ALL
+- HALT/FLATTEN
 
-### Phase H — Testnet / Exchange
-- validate selected exchange auth/docs
-- private API adapter
-- API key permissions minimal
-- IP whitelist where available
-- tiny-size testnet/demo orders
-- timeout/idempotency/reconciliation tests
+**Done:** UI resyncs after reconnect and source-of-truth remains consistent.
 
-### Phase I — Live Hardening
-- auth/RBAC
-- secret rotation
-- monitoring/alerts
-- DB backup/restore drill
-- chaos scenarios: API timeout, WS disconnect, restart during order
-- runbook
+### Phase 9 — Exchange Sandbox/Demo
 
-## Definition of Done MVP
+Only use documented official APIs. Do not use real money.
 
-MVP تمام است وقتی:
+**Done:** small sandbox/demo SEMI flow + reconciliation.
 
-1. یک dataset نسخه‌بندی‌شده دانلود می‌شود.
-2. Strategy V1 بدون look-ahead روی آن replay می‌شود.
-3. Backtest با fee/slippage گزارش قابل تکرار می‌دهد.
-4. Paper worker همان Strategy را live اجرا می‌کند.
-5. Risk limits order نامعتبر را رد می‌کنند.
-6. restart باعث duplicate order نمی‌شود.
-7. reconciliation discrepancy را تشخیص می‌دهد.
-8. dashboard state را نشان می‌دهد و SEMI flow کار می‌کند.
-9. هیچ LLM/API هوش مصنوعی برای این مسیر لازم نیست.
+### Phase 10 — Live Hardening
 
-مرجع اجرای دقیق Cursor: `15_CURSOR_IMPLEMENTATION_CHECKLIST.md`.
+Security, monitoring, backup, runbooks, drills, strategy promotion evidence.
+
+### Phase 11 — AI Optional
+
+Only research/post-mortem/advisory experiments after deterministic baseline.
+
+## Policy برای تصمیم‌های جدید
+
+اگر حین implementation نیاز به تصمیمی خارج از docs به وجود آمد، agent نباید با حدس خودش تصمیم معماری بگیرد. برای موارد زیر plan/trade-off ارائه و قبل از implementation تصمیم را مطرح کند:
+
+- architecture pattern جدید؛
+- dependency مهم جدید؛
+- تغییر Strategy/Risk semantics؛
+- تغییر Order/Execution semantics؛
+- migration مخرب؛
+- REST/WebSocket contract breaking change؛
+- exchange/data provider جدید یا undocumented behavior.
+
+Task مشخص داخل یک Phase تصویب‌شده می‌تواند پس از plan کوتاه ادامه پیدا کند.
+
+## Definition of Done عمومی
+
+هر feature قبل از Done:
+
+1. relevant tests pass;
+2. lint/typecheck pass;
+3. migration/API contracts بررسی شده؛
+4. docs در صورت تغییر رفتار به‌روز شده؛
+5. هیچ secret وارد Git/log نشده؛
+6. exact command results گزارش شده؛
+7. known risks و کارهای اجرا نشده شفاف اعلام شده‌اند.
+
+## چیزی که نباید انجام دهیم
+
+- پیاده‌سازی همه فازها در یک prompt/PR؛
+- live key در development؛
+- تغییر Strategy برای بهتر کردن یک backtest خاص بدون OOS؛
+- duplicate implementation برای strategy live/backtest؛
+- اتصال UI مستقیم به Exchange؛
+- retry کور order؛
+- استفاده از AI برای دور زدن Risk؛
+- اضافه کردن abstractionهای بزرگ بدون نیاز واقعی؛
+- اعلام Done بر اساس «looks correct» بدون verification.

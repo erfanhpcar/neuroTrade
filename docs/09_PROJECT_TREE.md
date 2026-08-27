@@ -34,9 +34,10 @@ neuroTrade/
 │   │   │   ├── base.py
 │   │   │   └── trend_following/
 │   │   ├── market_data/
-│   │   │   ├── base.py
-│   │   │   ├── bybit.py
-│   │   │   └── binance.py
+│   │   │   ├── base.py            # MarketDataProvider + OhlcvSeries
+│   │   │   ├── replay.py          # fixture-backed provider; no network
+│   │   │   ├── bybit.py           # later public REST/WS adapter
+│   │   │   └── binance.py         # later public REST/WS adapter
 │   │   ├── risk/
 │   │   │   ├── engine.py
 │   │   │   ├── sizing.py
@@ -72,7 +73,7 @@ neuroTrade/
 │   ├── tests/
 │   │   ├── unit/
 │   │   ├── integration/
-│   │   └── replay/
+│   │   └── replay/                    # offline OHLCV JSON fixtures
 │   ├── data/
 │   │   └── market/
 │   ├── Dockerfile

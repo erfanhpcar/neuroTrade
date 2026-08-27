@@ -53,7 +53,7 @@ Context: `04_DATA_SCHEMAS`, `09_PROJECT_TREE`, `backend/AGENTS.md`.
 - [x] repository layer و transaction boundaries. *(`UnitOfWork` + repositories for signals/risk/orders/fills/positions/portfolio; explicit commit, rollback on exception or missing commit; `DuplicateClientOrderId`)*
 - [x] تست Decimal serialization و state transitionهای نامعتبر. *(in-memory plus PostgreSQL NUMERIC round-trip)*
 
-**Done:** empty-DB upgrade, unique `client_order_id`, NUMERIC round-trip, downgrade+upgrade recovery, and repository/unit-of-work tests (commit, rollback, duplicate `client_order_id`, invalid order-status skip) are verified. Phase 1 Definition of Done is satisfied. Do not start Phase 2 until this lineage is reviewed.
+**Done:** empty-DB upgrade, unique `client_order_id`, NUMERIC round-trip, downgrade+upgrade recovery, and repository/unit-of-work tests (commit, rollback, duplicate `client_order_id`, invalid order-status skip) are verified. Phase 1 Definition of Done is satisfied.
 
 ---
 
@@ -61,17 +61,17 @@ Context: `04_DATA_SCHEMAS`, `09_PROJECT_TREE`, `backend/AGENTS.md`.
 
 Context: `07_EXTERNAL_SERVICES`, `12_API_COST_RATE_LIMITS`, `backend/AGENTS.md`.
 
-- [ ] `MarketDataProvider` interface.
+- [x] `MarketDataProvider` interface. *(`backend/app/market_data/base.py`; `fetch_ohlcv` + `latest_snapshot`; no live venue yet)*
 - [ ] یک provider اولیه (Bybit یا Binance public).
 - [ ] historical OHLCV downloader با pagination/rate limit.
-- [ ] UTC normalization و duplicate removal.
+- [ ] UTC normalization و duplicate removal. *(replay/interface invariants exist; live downloader still missing)*
 - [ ] missing-candle/out-of-order detector.
 - [ ] Parquet writer + dataset metadata/checksum.
 - [ ] WebSocket live ticker/candle stream.
 - [ ] reconnect با exponential backoff+jitter.
-- [ ] replay fixture برای تست بدون اینترنت.
+- [x] replay fixture برای تست بدون اینترنت. *(`ReplayMarketDataProvider` + `backend/tests/replay/btc_usdt_4h.json`; unit tests perform no network I/O)*
 
-**Done:** BTC/USDT historical dataset قابل تکرار ساخته و live snapshot دریافت شود؛ API key لازم نباشد.
+**Done:** BTC/USDT historical dataset قابل تکرار ساخته و live snapshot دریافت شود؛ API key لازم نباشد. Phase 2 is **not** complete until a public provider, gap detection, Parquet, and live snapshot exist.
 
 ---
 

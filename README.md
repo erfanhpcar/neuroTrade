@@ -59,3 +59,9 @@ Phase 1 (Domain Models & Database) is complete on this lineage:
 - Alembic revision `d587f5e75b76` creates the documented PostgreSQL tables.
 - `UnitOfWork` + repositories persist signals, risk decisions, orders, fills, positions, and portfolio snapshots.
 - Default `TRADING_MODE=PAPER`. Do not enable live trading.
+
+Phase 2 (Market Data) is started, not complete:
+
+- `MarketDataProvider` is an async, exchange-agnostic contract (`fetch_ohlcv`, `latest_snapshot`).
+- `ReplayMarketDataProvider` loads offline JSON fixtures. Unit tests do not use the network.
+- No Bybit/Binance adapter, Parquet writer, or live WebSocket yet.

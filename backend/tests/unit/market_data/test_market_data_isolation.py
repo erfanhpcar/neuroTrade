@@ -1,19 +1,21 @@
 import ast
 from pathlib import Path
 
-DOMAIN_ROOT = Path(__file__).resolve().parents[3] / "app" / "domain"
+MARKET_DATA_ROOT = Path(__file__).resolve().parents[3] / "app" / "market_data"
 
 FORBIDDEN_MODULES = {
-    "fastapi",
-    "starlette",
-    "sqlalchemy",
-    "alembic",
+    "aiohttp",
     "ccxt",
-    "redis",
+    "fastapi",
     "httpx",
+    "redis",
+    "requests",
+    "sqlalchemy",
+    "starlette",
+    "urllib",
+    "urllib3",
     "uvicorn",
-    "pydantic",
-    "pydantic_settings",
+    "websockets",
 }
 
 
@@ -29,9 +31,9 @@ def _imported_roots(path: Path) -> set[str]:
     return roots
 
 
-def test_domain_package_does_not_import_frameworks() -> None:
+def test_market_data_package_does_not_import_network_or_frameworks() -> None:
     offenders: list[str] = []
-    for path in sorted(DOMAIN_ROOT.glob("*.py")):
+    for path in sorted(MARKET_DATA_ROOT.glob("*.py")):
         imported = _imported_roots(path)
         bad = sorted(imported & FORBIDDEN_MODULES)
         if bad:
@@ -39,14 +41,15 @@ def test_domain_package_does_not_import_frameworks() -> None:
     assert offenders == []
 
 
-def test_domain_package_does_not_import_adapters_or_control_plane() -> None:
-    for path in sorted(DOMAIN_ROOT.glob("*.py")):
+def test_market_data_package_does_not_import_execution_or_control_plane() -> None:
+    for path in sorted(MARKET_DATA_ROOT.glob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         for node in ast.walk(tree):
             if isinstance(node, ast.ImportFrom) and node.module:
                 assert not node.module.startswith("app.execution")
-                assert not node.module.startswith("app.market_data")
+                assert not node.module.startswith("app.strategies")
                 assert not node.module.startswith("app.workers")
                 assert not node.module.startswith("app.api")
                 assert not node.module.startswith("app.main")
                 assert not node.module.startswith("app.infrastructure")
+                assert not node.module.startswith("app.config")

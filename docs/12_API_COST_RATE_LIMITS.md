@@ -15,6 +15,7 @@ V0/V1 باید بتواند با هزینه API تقریباً صفر اجرا �
 - REST polling فقط برای recovery/periodic reconciliation
 - reconnect با exponential backoff + jitter
 - snapshot + delta stream در صورت استفاده order book
+- Unit tests must use `ReplayMarketDataProvider` / fixtures. They must not call public REST or WebSocket endpoints.
 
 ## Rate limiting
 

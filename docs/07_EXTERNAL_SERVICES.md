@@ -20,6 +20,43 @@ Public market data معمولاً بدون private API key قابل دریافت
 
 `MarketDataProvider` باید exchange-agnostic contract باشد.
 
+Phase 2 interface (implemented; live venue adapters are later):
+
+```python
+class MarketDataProvider(Protocol):
+    name: str
+
+    async def fetch_ohlcv(
+        self,
+        symbol: str,
+        timeframe: str,
+        *,
+        start: datetime,
+        end: datetime,
+    ) -> OhlcvSeries:
+        ...
+
+    async def latest_snapshot(
+        self,
+        symbol: str,
+        timeframe: str,
+        *,
+        timestamp: datetime,
+    ) -> MarketSnapshot:
+        ...
+```
+
+Contract notes:
+
+- No private API key. Public market data only.
+- `fetch_ohlcv` returns closed bars with `open_time` in the inclusive UTC range `[start, end]`.
+- Results are sorted by `open_time`. Identical duplicate bars collapse; conflicting duplicates raise.
+- `latest_snapshot` uses the last bar with `open_time <= timestamp` and never a later bar.
+- Prices/volume are `Decimal`. Naive timestamps are rejected.
+- `ReplayMarketDataProvider` is the offline implementation for unit tests and later local replay. It loads JSON fixtures from disk and performs no network I/O.
+- Live REST/WebSocket adapters (Bybit/Binance) are not part of this increment. Do not add CCXT until a public provider is implemented.
+- Unit tests must not depend on the public internet.
+
 ## Execution
 
 `ExecutionAdapter` contract مستقل است:

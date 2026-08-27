@@ -22,5 +22,9 @@ out/
 # Market data / research artifacts (never commit generated datasets)
 backend/data/market/
 
+# Local service state
+dump.rdb
+*.rdb
+
 # OS / editor
 .DS_Store

@@ -1,0 +1,108 @@
+# neuroTrade local stack (Phase 0).
+# PostgreSQL is the transactional source of truth. Redis is cache/pub-sub only.
+# backend and trading-worker share one image/codebase with different commands.
+# Default trading mode is PAPER. FULL is rejected at process startup.
+#
+# Frontend BACKEND_URL is server-only (same-origin /api rewrite). Do not add
+# NEXT_PUBLIC_* backend URLs or secrets.
+
+name: neurotrade
+
+x-backend-environment: &backend-environment
+  APP_ENV: ${APP_ENV:-development}
+  TRADING_MODE: ${TRADING_MODE:-PAPER}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  DATABASE_URL: postgresql+asyncpg://neurotrade:neurotrade_dev_password@postgres:5432/neurotrade
+  REDIS_URL: redis://redis:6379/0
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: neurotrade
+      POSTGRES_PASSWORD: neurotrade_dev_password
+      POSTGRES_DB: neurotrade
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neurotrade -d neurotrade"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment: *backend-environment
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=2)",
+        ]
+      interval: 10s
+      timeout: 3s
+      start_period: 10s
+      retries: 10
+    restart: unless-stopped
+
+  trading-worker:
+    build:
+      context: ./backend
+    command: ["python", "-m", "app.workers.trading_worker"]
+    environment: *backend-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 10s
+    # Heartbeat stub has no HTTP port. Image HEALTHCHECK probes /api/health and
+    # would be a false failure here, so disable it for this service.
+    healthcheck:
+      disable: true
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        BACKEND_URL: http://host.docker.internal:8000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      NODE_ENV: production
+      # Request-time BFF target. host.docker.internal reaches the published
+      # control-plane port even when user-defined-bridge ICC is restricted.
+      BACKEND_URL: http://host.docker.internal:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:

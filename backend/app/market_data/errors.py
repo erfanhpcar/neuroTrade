@@ -19,3 +19,19 @@ class InsufficientMarketHistory(MarketDataError):
 
 class ConflictingDuplicateBars(MarketDataError):
     """Two bars share ``open_time`` but disagree on OHLCV values."""
+
+
+class UnsupportedTimeframe(MarketDataError):
+    """The venue adapter has no mapping for the requested timeframe."""
+
+
+class UnsupportedMarketCategory(MarketDataError):
+    """The venue adapter does not accept the requested product category."""
+
+
+class MarketDataHttpError(MarketDataError):
+    """Public REST call failed after retries or returned a non-success body."""
+
+
+class MarketDataRateLimited(MarketDataHttpError):
+    """The venue rejected the request for exceeding its documented rate limit."""

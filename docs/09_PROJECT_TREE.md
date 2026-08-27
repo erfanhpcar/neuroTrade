@@ -36,7 +36,8 @@ neuroTrade/
 │   │   ├── market_data/
 │   │   │   ├── base.py            # MarketDataProvider + OhlcvSeries
 │   │   │   ├── replay.py          # fixture-backed provider; no network
-│   │   │   ├── bybit.py           # later public REST/WS adapter
+│   │   │   ├── bybit.py           # public REST kline adapter (no API key)
+│   │   │   ├── rate_limit.py      # per-endpoint budget + backoff
 │   │   │   └── binance.py         # later public REST/WS adapter
 │   │   ├── risk/
 │   │   │   ├── engine.py

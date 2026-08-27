@@ -60,8 +60,9 @@ Phase 1 (Domain Models & Database) is complete on this lineage:
 - `UnitOfWork` + repositories persist signals, risk decisions, orders, fills, positions, and portfolio snapshots.
 - Default `TRADING_MODE=PAPER`. Do not enable live trading.
 
-Phase 2 (Market Data) is started, not complete:
+Phase 2 (Market Data) is in progress, not complete:
 
 - `MarketDataProvider` is an async, exchange-agnostic contract (`fetch_ohlcv`, `latest_snapshot`).
 - `ReplayMarketDataProvider` loads offline JSON fixtures. Unit tests do not use the network.
-- No Bybit/Binance adapter, Parquet writer, or live WebSocket yet.
+- `BybitPublicRestProvider` fetches public klines via official `GET /v5/market/kline` (no API key, no CCXT). Pagination and a configured rate-limit budget are included. Unit tests use `httpx.MockTransport`.
+- Missing-candle detection, Parquet writer, and live WebSocket are not started.

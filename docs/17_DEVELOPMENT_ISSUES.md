@@ -2,12 +2,24 @@
 
 ## Active Issues
 
+### ISSUE-0015 — Bybit kline `category` default is spot, not linear
+- Status: OPEN
+- Severity: LOW
+- Area: Data
+- Found in: `backend/app/market_data/bybit.py`
+- Description: Bybit's official kline API defaults `category` to `linear` when omitted. This adapter always sends `category` and defaults to `spot` because `DEFAULT_SYMBOL=BTC/USDT` is cash-market notation and perpetual funding is a later Phase 4 concern. Callers can pass `linear` or `inverse`.
+- Why it matters: Spot and USDT-perpetual OHLCV are different series. A silent linear default would mix products.
+- Suggested options: Keep explicit `spot` until a human chooses perpetual as the V1 trading product; or require `category` with no default.
+- Recommended next action: Leave `spot` default. Do not add Binance or funding/OI in this increment.
+- Created: 2026-08-27
+- Last reviewed: 2026-08-27
+
 ### ISSUE-0014 — Bar availability at open vs close is underspecified
 - Status: NEEDS_DECISION
 - Severity: HIGH
 - Area: Data
 - Found in: `backend/app/domain/market.py` / `backend/app/market_data/base.py`
-- Description: `MarketSnapshot` forbids `bar.open_time > timestamp` but allows `open_time == timestamp`. `MarketDataProvider.latest_snapshot` therefore returns the last bar with `open_time <= timestamp`. For a 4h candle, OHLC at `open_time` is not known until the bar closes (`open_time + timeframe`). Using that bar at decision time `open_time` would be look-ahead.
+- Description: `MarketSnapshot` forbids `bar.open_time > timestamp` but allows `open_time == timestamp`. `MarketDataProvider.latest_snapshot` therefore returns the last bar with `open_time <= timestamp`. For a 4h candle, OHLC at `open_time` is not known until the bar closes (`open_time + timeframe`). Using that bar at decision time `open_time` would be look-ahead. Bybit also documents that an unclosed candle's close is last traded price.
 - Why it matters: Strategy and backtest correctness depend on when a candle is considered closed. Guessing a close-only rule now would change domain semantics without approval.
 - Suggested options: Keep the current guard until Phase 3/4; or require `open_time + timeframe <= timestamp` before a bar is eligible (stricter no-look-ahead).
 - Recommended next action: Human confirm bar-close availability before Strategy V1 / Backtest consume `latest_snapshot`. Do not change `MarketSnapshot` in this increment.
@@ -67,10 +79,10 @@
 - Severity: LOW
 - Area: Testing
 - Found in: `make backend-check` / FastAPI 0.141.1 TestClient
-- Description: Pytest emits `StarletteDeprecationWarning: Using httpx with starlette.testclient is deprecated; install httpx2 instead.` Tests still pass.
-- Why it matters: Future Starlette versions may require a new HTTP test client. Adding `httpx2` now would be a new dependency without an approved need.
-- Suggested options: Keep `httpx` until Starlette requires the change; then add `httpx2` as a dev extra only.
-- Recommended next action: Do not add a new runtime dependency for this warning. Revisit if CI tests start failing.
+- Description: Pytest emits `StarletteDeprecationWarning: Using httpx with starlette.testclient is deprecated; install httpx2 instead.` Tests still pass. `httpx` is now also a runtime dependency of the Bybit public REST adapter.
+- Why it matters: Future Starlette versions may require a new HTTP test client. Adding `httpx2` now would be a second HTTP stack alongside the venue adapter.
+- Suggested options: Keep `httpx` until Starlette requires the change; then evaluate `httpx2` without forking the Bybit client.
+- Recommended next action: Do not add `httpx2` in this increment. Revisit if CI tests start failing.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -79,10 +91,10 @@
 - Severity: MEDIUM
 - Area: Docs
 - Found in: GitHub PRs #2, #3, #4, #5, #6
-- Description: Parallel automation runs produced overlapping Phase 0 drafts. Current implementation lineage is PR #9 (`cursor/development-agent-guidelines-ee5e`, Phase 1 repositories stacked on PR #8) plus this Phase 2 market-data interface increment. PR #2 (`cursor/phase0-foundation-scaffold-1e99`) was used only as a CI workflow-shape reference; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
+- Description: Parallel automation runs produced overlapping Phase 0 drafts. Current implementation lineage is PR #10 (`cursor/development-agent-guidelines-a9c9`, Phase 2 MarketDataProvider) plus this Bybit public REST increment. PR #2 (`cursor/phase0-foundation-scaffold-1e99`) was used only as a CI workflow-shape reference; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
 - Why it matters: Merging PR #2 blindly would fork the health API.
 - Suggested options: Continue this lineage. Close or rebase superseded drafts after human review.
-- Recommended next action: Human review should treat PR #9 as current Phase 1 tip. This increment stacks on PR #9. Close or rebase superseded drafts #2/#3/#4/#5 after review.
+- Recommended next action: Human review should treat PR #10 as previous Phase 2 tip. This increment stacks on PR #10. Close or rebase superseded drafts #2/#3/#4/#5 after review.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -120,7 +132,7 @@
 - Description: Added `UnitOfWork` and repositories for signals, risk decisions, orders, fills, positions, and portfolio snapshots. Reuses existing ORM rows and mapping functions. Commit is explicit; missing commit or exceptions roll back. Duplicate `client_order_id` is `DuplicateClientOrderId`.
 - Why it matters: Callers no longer need to scatter session/commit logic for the trading tables.
 - Suggested options: n/a
-- Recommended next action: Phase 2 `MarketDataProvider` + replay fixture exist on this lineage. Next smallest task is a public Bybit or Binance REST OHLCV adapter with pagination/rate limits. Do not add a second domain model layer.
+- Recommended next action: Phase 2 public Bybit REST kline adapter exists. Next smallest task is missing-candle/out-of-order detection on `OhlcvSeries`. Do not add Parquet or WebSocket until gaps are detected rather than silently ignored.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 

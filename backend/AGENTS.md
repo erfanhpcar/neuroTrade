@@ -10,7 +10,7 @@ These instructions extend the root `AGENTS.md` for `backend/**`.
 - Async is for external I/O (exchange, DB, Redis, HTTP). Do not make pure strategy/risk functions async.
 - Dependency direction points inward: adapters may depend on domain contracts; domain must not import adapters.
 - No direct CCXT/native-exchange calls outside market-data/execution adapters.
-- `market_data/` implements `MarketDataProvider`. Unit tests must use `ReplayMarketDataProvider` or fixtures; they must not hit the public internet. Do not add CCXT or a live venue adapter until the interface tests exist.
+- `market_data/` implements `MarketDataProvider`. Unit tests must use `ReplayMarketDataProvider`, fixtures, or an injected HTTP fake; they must not hit the public internet. Do not add CCXT. The first public venue adapter is native Bybit REST in `market_data/bybit.py`.
 
 ## Financial values
 

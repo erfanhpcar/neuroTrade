@@ -2,11 +2,21 @@
 
 ```text
 neuroTrade/
+├── AGENTS.md                     # قواعد مشترک Cursor/Codex
+├── .cursor/
+│   └── rules/
+│       ├── 00-neurotrade-core.mdc
+│       ├── backend-python.mdc
+│       └── frontend-nextjs.mdc
 ├── docker-compose.yml
 ├── docker-compose.override.yml
 ├── .env.example
 ├── docs/
+│   ├── 00_INDEX.md
+│   ├── ...
+│   └── 16_CODING_AGENT_GUIDELINES.md
 ├── backend/
+│   ├── AGENTS.md                 # قواعد scoped بک‌اند
 │   ├── app/
 │   │   ├── main.py
 │   │   ├── config.py
@@ -62,6 +72,7 @@ neuroTrade/
 │   ├── Dockerfile
 │   └── pyproject.toml
 ├── frontend/
+│   ├── AGENTS.md                 # قواعد scoped فرانت‌اند
 │   ├── src/app/
 │   ├── src/components/
 │   ├── src/lib/
@@ -74,6 +85,7 @@ neuroTrade/
 
 ## قواعد ساختار
 
+- `AGENTS.md` و `.cursor/rules/` بخشی از architecture governance هستند و با Git version می‌شوند.
 - `strategies/` به `execution/` import نکند.
 - domain models از FastAPI/CCXT مستقل باشند.
 - adapterها در boundary قرار بگیرند.

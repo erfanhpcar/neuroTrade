@@ -5,8 +5,11 @@ BACKEND_DIR := backend
 FRONTEND_DIR := frontend
 NPM ?= npm
 
+COMPOSE ?= docker compose
+
 .PHONY: help backend-install backend-lint backend-format backend-typecheck backend-test backend-check backend-run \
-	frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-run
+	frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-run \
+	compose-config compose-up compose-down compose-ps
 
 help:
 	@echo "neuroTrade canonical commands"
@@ -24,6 +27,10 @@ help:
 	@echo "  make frontend-build       next build"
 	@echo "  make frontend-check       lint + typecheck + tests + build"
 	@echo "  make frontend-run         next dev on :3000"
+	@echo "  make compose-config      Validate docker-compose.yml"
+	@echo "  make compose-up          docker compose up --build -d (PAPER)"
+	@echo "  make compose-down        docker compose down"
+	@echo "  make compose-ps          docker compose ps"
 
 backend-install:
 	$(PYTHON) -m pip install -e "$(BACKEND_DIR)[dev]"
@@ -66,3 +73,15 @@ frontend-check: frontend-lint frontend-typecheck frontend-test frontend-build
 
 frontend-run:
 	cd $(FRONTEND_DIR) && $(NPM) run dev
+
+compose-config:
+	$(COMPOSE) -f docker-compose.yml config
+
+compose-up:
+	$(COMPOSE) -f docker-compose.yml up --build -d
+
+compose-down:
+	$(COMPOSE) -f docker-compose.yml down
+
+compose-ps:
+	$(COMPOSE) -f docker-compose.yml ps

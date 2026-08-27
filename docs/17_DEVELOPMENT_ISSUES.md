@@ -3,14 +3,14 @@
 ## Active Issues
 
 ### ISSUE-0001 — Phase 0 foundation is incomplete
-- Status: OPEN
+- Status: IN_PROGRESS
 - Severity: MEDIUM
 - Area: Infrastructure
 - Found in: Phase 0 / repository root
-- Description: Backend FastAPI health and a Next.js operator shell exist, but Phase 0 Definition of Done is not satisfied. Missing pieces: backend/frontend Dockerfiles, Compose for postgres/redis/backend/trading-worker/frontend, a trading-worker process, and CI workflows. shadcn/ui is documented for the dashboard but was not added in the Phase 0 shell; operator safety dialogs belong in Phase 8.
-- Why it matters: Agents cannot run the documented stack or gated CI until Compose and CI exist. Trading worker is still absent, so there is no process isolation beyond the control-plane app factory.
-- Suggested options: Next increment should add Dockerfiles + Compose with default `TRADING_MODE=PAPER`, then CI.
-- Recommended next action: Add backend/frontend Dockerfiles and a Compose file for postgres, redis, backend, trading-worker, and frontend. Worker can be a heartbeat stub; do not implement the trading pipeline.
+- Description: FastAPI health, Next.js operator shell, trading-worker heartbeat stub, Dockerfiles, and Compose exist and were verified with `docker compose up` (all five services up, `/api/health` returns PAPER, worker logs PAPER heartbeats, frontend BFF proxies health). Phase 0 Definition of Done is still not satisfied because GitHub Actions CI is missing.
+- Why it matters: Agents cannot rely on gated CI until workflows exist.
+- Suggested options: Next increment should add `.github/workflows/ci.yml` running `make backend-check` and `make frontend-check`.
+- Recommended next action: Add CI workflows. Do not start Phase 1 domain/schema until CI exists.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -42,11 +42,11 @@
 - Status: OPEN
 - Severity: MEDIUM
 - Area: Docs
-- Found in: GitHub PRs #2 and #3 vs this increment
-- Description: Parallel automation runs produced overlapping Phase 0 drafts. PR #3 (`cursor/development-agent-guidelines-76fd`) is the conservative FastAPI health increment this work continues. PR #2 (`cursor/phase0-foundation-scaffold-1e99`) also adds frontend, Compose, CI, a worker stub, and a different `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) that conflicts with the documented Phase 0 liveness contract.
-- Why it matters: Merging both blindly would fork the health API and duplicate frontend/infra. The liveness-only health payload is already documented in `docs/10_REST_API.md`.
-- Suggested options: Continue this lineage (PR #3 + Next.js shell). Review PR #2 for reusable Compose/CI/worker pieces, but do not adopt its health contract without an explicit docs change. Close or rebase the superseded draft after review.
-- Recommended next action: Human review should treat this branch as the current Phase 0 continuation and keep PR #2 as a reference for Docker/CI only.
+- Found in: GitHub PRs #2, #3, and #4 vs this increment
+- Description: Parallel automation runs produced overlapping Phase 0 drafts. This increment continues PR #4 (`cursor/development-agent-guidelines-1a8a`: FastAPI health + Next.js shell). PR #2 (`cursor/phase0-foundation-scaffold-1e99`) remains a reference for Compose/CI/worker only; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
+- Why it matters: Merging PR #2 blindly would fork the health API. Compose on this lineage keeps health as liveness-only and omits `NEXT_PUBLIC_*` backend URLs.
+- Suggested options: Continue this lineage. Close or rebase superseded drafts after human review.
+- Recommended next action: Human review should treat the PR #3/#4 lineage plus this Compose increment as current Phase 0.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -62,6 +62,31 @@
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
+### ISSUE-0008 — Worker heartbeat is log-only
+- Status: OPEN
+- Severity: LOW
+- Area: Infrastructure
+- Found in: `backend/app/workers/trading_worker.py` / `docs/14_DOCKER_DEPLOYMENT.md`
+- Description: `docs/14` says worker heartbeat lives in DB/Redis. Phase 0 implements a process-isolated heartbeat stub that emits structured logs only. No Redis client was added, so Redis remains unused infrastructure until a consumer exists.
+- Why it matters: The dashboard cannot yet detect a stale worker. Adding `redis` now would be a new runtime dependency without an API/UI reader, and unit tests would need a fake Redis.
+- Suggested options: Keep log-only heartbeat until `/api/system/status` (or an equivalent readiness field) is specified to read it. Then persist heartbeat to Redis with TTL as cache/coordination, not as trading source of truth.
+- Recommended next action: Do not add a Redis client in the CI increment. Wire heartbeat storage when the status contract is implemented.
+- Created: 2026-08-27
+- Last reviewed: 2026-08-27
+
+## Resolved Issues
+
+### ISSUE-0009 — Frontend rewrite destination is baked at image build
+- Status: RESOLVED
+- Severity: LOW
+- Area: Frontend
+- Found in: `frontend/next.config.ts` / `frontend/Dockerfile`
+- Description: Next.js `rewrites()` baked `BACKEND_URL` at build time. Replaced with a same-origin `/api/[...path]` BFF that reads `BACKEND_URL` at request time. Compose uses `host.docker.internal:host-gateway` because this environment's user-defined bridge did not allow container-to-container TCP to `backend:8000`.
+- Why it matters: The operator dashboard must reach the control plane without `NEXT_PUBLIC_*` URLs.
+- Suggested options: n/a
+- Recommended next action: If a later environment has working ICC, `BACKEND_URL=http://backend:8000` remains valid at runtime without a frontend rebuild.
+- Created: 2026-08-27
+- Last reviewed: 2026-08-27
 
 ### ISSUE-0006 — Next.js 15.1.6 is affected by CVE-2025-66478
 - Status: RESOLVED

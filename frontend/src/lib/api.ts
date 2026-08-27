@@ -1,14 +1,14 @@
+import { backendOrigin } from "@/lib/backend";
 import { parseHealth } from "@/lib/health";
 import type { HealthPayload } from "@/types/health";
 
 /**
- * Browser calls same-origin `/api/health` (rewritten to the control plane).
+ * Browser calls same-origin `/api/health` (BFF proxy to the control plane).
  * Server code talks to BACKEND_URL directly. Neither value is a secret.
  */
 export function healthRequestUrl(): string {
   if (typeof window === "undefined") {
-    const origin = (process.env.BACKEND_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
-    return `${origin}/api/health`;
+    return `${backendOrigin()}/api/health`;
   }
   return "/api/health";
 }

@@ -29,15 +29,15 @@ Context: `AGENTS.md`, `00_INDEX`, `01_ARCH_OVERVIEW`, `09_PROJECT_TREE`, `14_DOC
 - [x] Python project با `pyproject.toml` و lint/typecheck/test.
 - [x] FastAPI minimal app + `/api/health`.
 - [x] Next.js minimal dashboard.
-- [ ] Dockerfile backend/frontend.
-- [ ] Compose برای postgres/redis/backend/trading-worker/frontend.
+- [x] Dockerfile backend/frontend.
+- [x] Compose برای postgres/redis/backend/trading-worker/frontend.
 - [x] `.env.example` و `.gitignore`.
 - [x] structured logging با correlation/request IDs.
 - [ ] CI: backend tests/lint/typecheck + frontend lint/typecheck/build.
 - [x] commandهای canonical پروژه برای checkها مستند شوند تا Cursor/Codex یک toolchain مشترک اجرا کنند.
 - [x] default `TRADING_MODE=PAPER`.
 
-**Done:** `docker compose up` کل stack را بالا بیاورد و CI سبز باشد. **Phase 0 is not Done.**
+**Done:** `docker compose up` کل stack را بالا بیاورد و CI سبز باشد. **Phase 0 is not Done** (CI remains).
 
 ---
 

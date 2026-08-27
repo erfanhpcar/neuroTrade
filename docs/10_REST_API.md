@@ -23,7 +23,7 @@
 - `trading_mode` is `PAPER` or `SEMI`. `FULL` is rejected at process startup until Phase 10.
 - Response header `X-Request-ID` echoes the incoming request ID or a generated UUID.
 - This is a liveness check, not a dependency readiness check.
-- The Phase 0 Next.js shell reads this payload (via same-origin `/api/*` rewrite) and displays `trading_mode`. It does not call `/api/system/status` until that route exists.
+- The Phase 0 Next.js shell reads this payload via a same-origin `/api/*` BFF (server-only `BACKEND_URL`) and displays `trading_mode`. It does not call `/api/system/status` until that route exists.
 
 ### Strategies
 - `GET /api/strategies`

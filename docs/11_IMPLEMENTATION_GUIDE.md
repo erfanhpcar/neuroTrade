@@ -29,7 +29,7 @@ Checklist اجرایی canonical: `15_CURSOR_IMPLEMENTATION_CHECKLIST.md` (با 
 - trading-worker process
 - CI
 - `.env.example`
-- canonical lint/typecheck/test commands (`make backend-check`, `make frontend-check`; see root `Makefile` / `README.md`)
+- canonical lint/typecheck/test/compose commands (`make backend-check`, `make frontend-check`, `make compose-config`; see root `Makefile` / `README.md`)
 
 **Done:** Compose healthy + CI green + default PAPER.
 

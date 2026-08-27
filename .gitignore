@@ -35,8 +35,12 @@ out/
 *.db
 *.sqlite
 *.sqlite3
+dump.rdb
 backend/data/market/**
 !backend/data/market/.gitkeep
+
+# Local Compose overrides (bind mounts, extra ports). Do not commit.
+docker-compose.override.yml
 
 # OS / editor
 .DS_Store

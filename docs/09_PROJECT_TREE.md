@@ -8,9 +8,9 @@ neuroTrade/
 │       ├── 00-neurotrade-core.mdc
 │       ├── backend-python.mdc
 │       └── frontend-nextjs.mdc
-├── Makefile                      # canonical lint/typecheck/test commands
-├── docker-compose.yml            # Phase 0 remaining
-├── docker-compose.override.yml   # Phase 0 remaining
+├── Makefile                      # canonical lint/typecheck/test/compose commands
+├── docker-compose.yml            # postgres, redis, backend, trading-worker, frontend
+├── docker-compose.override.yml   # local only; gitignored
 ├── .gitignore
 ├── .env.example
 ├── docs/
@@ -64,8 +64,8 @@ neuroTrade/
 │   │   │   ├── redis/
 │   │   │   └── logging/
 │   │   └── workers/
-│   │       ├── trading_worker.py
-│   │       └── market_data_worker.py
+│   │       ├── trading_worker.py      # Phase 0 heartbeat stub
+│   │       └── market_data_worker.py  # later
 │   ├── tests/
 │   │   ├── unit/
 │   │   ├── integration/

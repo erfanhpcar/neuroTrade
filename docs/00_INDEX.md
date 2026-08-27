@@ -74,4 +74,4 @@
 | AI | خاموش/اختیاری در MVP |
 | Deployment | Docker Compose |
 
-> وضعیت فعلی مخزن: **Phase 0 complete**. Phase 1 persistence increment (async SQLAlchemy + Alembic) exists under `backend/app/infrastructure/db/`. Domain dataclasses remain framework-independent. Repository layer is not started. Default `TRADING_MODE=PAPER`. Documents 00–17 and repository `AGENTS.md` rules remain the source of truth.
+> وضعیت فعلی مخزن: **Phase 0 complete. Phase 1 complete** (domain models, Alembic schema, repository/`UnitOfWork`). Default `TRADING_MODE=PAPER`. Next is Phase 2 market data. Documents 00–17 and repository `AGENTS.md` rules remain the source of truth.

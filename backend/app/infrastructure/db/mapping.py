@@ -137,6 +137,21 @@ def order_from_row(row: OrderRow) -> Order:
     )
 
 
+def apply_order_to_row(row: OrderRow, order: Order) -> None:
+    """Copy domain fields onto an existing ORM row. Does not change ``order_id``."""
+
+    row.client_order_id = order.client_order_id
+    row.symbol = order.symbol
+    row.side = order.side.value
+    row.quantity = order.quantity
+    row.filled_quantity = order.filled_quantity
+    row.status = order.status.value
+    row.created_at = order.created_at
+    row.signal_id = order.signal_id
+    row.risk_decision_id = order.risk_decision_id
+    row.exchange_order_id = order.exchange_order_id
+
+
 def fill_to_row(fill: Fill) -> FillRow:
     return FillRow(
         fill_id=fill.fill_id,
@@ -187,6 +202,19 @@ def position_from_row(row: PositionRow) -> Position:
         unrealized_pnl=row.unrealized_pnl,
         opened_at=row.opened_at,
     )
+
+
+def apply_position_to_row(row: PositionRow, position: Position) -> None:
+    """Copy domain fields onto an existing ORM row. Does not change ``position_id``."""
+
+    row.symbol = position.symbol
+    row.side = position.side.value
+    row.status = position.status.value
+    row.quantity = position.quantity
+    row.avg_entry_price = position.avg_entry_price
+    row.realized_pnl = position.realized_pnl
+    row.unrealized_pnl = position.unrealized_pnl
+    row.opened_at = position.opened_at
 
 
 def portfolio_to_row(state: PortfolioState, *, snapshot_id: UUID) -> PortfolioSnapshotRow:

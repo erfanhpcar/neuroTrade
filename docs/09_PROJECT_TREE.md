@@ -61,7 +61,7 @@ neuroTrade/
 │   │   │   ├── positions.py
 │   │   │   └── backtests.py
 │   │   ├── infrastructure/
-│   │   │   ├── db/                    # SQLAlchemy models + mapping; not domain
+│   │   │   ├── db/                    # ORM rows, mapping, UnitOfWork, repositories
 │   │   │   ├── redis/
 │   │   │   └── logging/
 │   │   └── workers/

@@ -41,6 +41,7 @@ These instructions extend the root `AGENTS.md` for `backend/**`.
 - Use migrations for schema changes; no runtime `CREATE TABLE` shortcuts in production code.
 - Constraints belong in the DB where they protect invariants (unique client IDs, valid references, etc.).
 - Keep transaction boundaries explicit; avoid long transactions around network calls.
+- Write trading state through `UnitOfWork` and repositories. Do not scatter `session.commit()`. Do not hold a transaction open across exchange I/O.
 - Redis may optimize delivery/coordination but may not be required to reconstruct account/trading state.
 
 ## Errors and logs

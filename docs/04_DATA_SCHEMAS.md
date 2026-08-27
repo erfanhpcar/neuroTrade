@@ -61,7 +61,20 @@ Alembic revision `d587f5e75b76` creates the documented tables. ORM rows are not 
 
 Migrations: `make backend-migrate` (`alembic upgrade head`) and `make backend-migrate-down`. SQLite is not supported for trading state. Control-plane/worker processes do not auto-migrate on startup in this increment.
 
-Repository APIs and transaction-boundary helpers are the next Phase 1 increment.
+## Repository layer and transaction boundaries
+
+Trading rows are written through `UnitOfWork` (`backend/app/infrastructure/db/unit_of_work.py`) and repositories (`backend/app/infrastructure/db/repositories.py`). ORM rows remain persistence records; repositories reconstruct `app.domain` dataclasses via the existing mapping functions.
+
+Rules:
+
+- `async with UnitOfWork(session_factory)` opens one PostgreSQL transaction.
+- `await uow.commit()` is required to persist. Exiting without commit, or with an exception, rolls back.
+- Do not hold a unit of work open across exchange or other network I/O. Persist locally, then talk to the network, then open a new unit of work if needed.
+- `orders.client_order_id` uniqueness is exposed as `DuplicateClientOrderId`, not a raw SQLAlchemy `IntegrityError`.
+- `OrderRepository.save` / `PositionRepository.save` refuse status skips that `ORDER_TRANSITIONS` / `POSITION_TRANSITIONS` forbid.
+- Look up in-flight orders by `get_by_client_order_id` for later idempotency/reconciliation. `OrderIntent` is still not a table.
+
+`system_settings`, `strategy_versions`, `risk_events`, `backtest_*`, and `system_events` are migrated but do not yet have repositories. Those remain later increments when a caller exists.
 
 ## Order state machine
 

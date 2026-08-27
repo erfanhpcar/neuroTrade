@@ -74,4 +74,4 @@
 | AI | خاموش/اختیاری در MVP |
 | Deployment | Docker Compose |
 
-> وضعیت فعلی مخزن: **Phase 0 complete**. FastAPI health, Next.js operator shell, trading-worker heartbeat stub, Compose (`TRADING_MODE=PAPER`), and GitHub Actions CI exist and are verified. Next work is Phase 1 domain models. Documents 00–17 and repository `AGENTS.md` rules remain the source of truth before further implementation.
+> وضعیت فعلی مخزن: **Phase 0 complete**. Phase 1 first increment (in-memory domain models and state machines) exists under `backend/app/domain/`. SQLAlchemy/migrations/repositories are not started. Default `TRADING_MODE=PAPER`. Documents 00–17 and repository `AGENTS.md` rules remain the source of truth.

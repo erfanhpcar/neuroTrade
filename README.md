@@ -51,4 +51,4 @@ Phase 0 (Repository Foundation) is complete:
 - Trading worker is a heartbeat stub (no Strategy/Risk/Execution).
 - GitHub Actions CI runs the canonical backend and frontend checks and is green.
 
-Next work is Phase 1 domain models. Do not enable live trading.
+Phase 1 first increment (in-memory domain models and state machines) is in `backend/app/domain/`. SQLAlchemy/migrations are not started. Do not enable live trading.

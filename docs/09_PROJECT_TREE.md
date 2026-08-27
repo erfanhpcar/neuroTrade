@@ -23,9 +23,10 @@ neuroTrade/
 │   ├── app/
 │   │   ├── main.py               # FastAPI control plane
 │   │   ├── config.py             # TRADING_MODE default PAPER
-│   │   ├── domain/               # Phase 1+
+│   │   ├── domain/               # Phase 1 in-memory models; no ORM yet
 │   │   │   ├── market.py
 │   │   │   ├── signal.py
+│   │   │   ├── risk.py
 │   │   │   ├── order.py
 │   │   │   ├── position.py
 │   │   │   └── portfolio.py

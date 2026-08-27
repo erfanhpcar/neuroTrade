@@ -10,6 +10,24 @@ trading-worker   # strategy/risk/execution loop
 frontend         # Next.js
 ```
 
+Canonical commands from the repository root:
+
+```text
+make compose-config     # validate docker-compose.yml
+make compose-up         # docker compose up --build -d
+make compose-ps
+make compose-down
+```
+
+Phase 0 stack notes:
+
+- `backend` and `trading-worker` share `backend/Dockerfile` (same codebase, different command).
+- `trading-worker` runs `python -m app.workers.trading_worker` (heartbeat stub). It does not trade.
+- `GET /api/health` remains liveness-only. It does not probe Postgres/Redis.
+- Frontend `BACKEND_URL` is server-only. The Next.js `/api/*` BFF reads it at request time (no `NEXT_PUBLIC_*`). Compose sets `BACKEND_URL=http://host.docker.internal:8000` plus `extra_hosts: host.docker.internal:host-gateway` so the dashboard can reach the published control-plane port even when bridge ICC is restricted.
+- Default `TRADING_MODE` interpolates to `PAPER`. `FULL` is rejected at process startup until Phase 10.
+- A local `docker-compose.override.yml` is gitignored for bind mounts; do not commit it.
+
 Backtest worker جدا فقط زمانی اضافه شود که jobهای سنگین API/worker اصلی را مختل کنند.
 
 ## شبکه و persistence
@@ -23,7 +41,7 @@ Backtest worker جدا فقط زمانی اضافه شود که jobهای سنگ
 
 ```env
 APP_ENV=development
-DATABASE_URL=postgresql+asyncpg://neurotrade:pass@postgres:5432/neurotrade
+DATABASE_URL=postgresql+asyncpg://neurotrade:neurotrade_dev_password@postgres:5432/neurotrade
 REDIS_URL=redis://redis:6379/0
 TRADING_MODE=PAPER
 MARKET_DATA_PROVIDER=bybit
@@ -47,10 +65,10 @@ Secret واقعی commit نشود.
 
 ## health
 
-- `/api/health` برای API
-- worker heartbeat در DB/Redis
-- postgres/redis healthcheck
-- UI باید stale worker را واضح نشان دهد
+- `/api/health` برای API (Phase 0: liveness only; no Postgres/Redis probe)
+- worker heartbeat در DB/Redis (Phase 0 stub logs heartbeat only; Redis/DB write comes when `/api/system/status` consumes it)
+- postgres/redis healthcheck in Compose
+- UI باید stale worker را واضح نشان دهد (Phase 8; dashboard currently shows control-plane liveness)
 
 ## production
 

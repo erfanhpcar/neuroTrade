@@ -65,5 +65,6 @@ Phase 2 (Market Data) is in progress, not complete:
 - `MarketDataProvider` is an async, exchange-agnostic contract (`fetch_ohlcv`, `latest_snapshot`).
 - `ReplayMarketDataProvider` loads offline JSON fixtures. Unit tests do not use the network.
 - `BybitPublicRestProvider` fetches public klines via official `GET /v5/market/kline` (no API key, no CCXT). Pagination and a configured rate-limit budget are included. Unit tests use `httpx.MockTransport`.
-- `inspect_ohlcv` / `inspect_series` detect missing candles and off-grid timestamps. `require_contiguous_ohlcv` is fail-closed for later dataset writes. Providers log gaps; they do not raise.
-- Parquet writer and live WebSocket are not started.
+- `inspect_ohlcv` / `inspect_series` detect missing candles and off-grid timestamps. `require_contiguous_ohlcv` is fail-closed for dataset writes. Providers log gaps; they do not raise.
+- `ParquetOhlcvStore` writes immutable hive-partitioned Parquet plus `metadata.json` (`dataset_hash` and per-file SHA-256). Unit tests use a temp directory; generated `backend/data/market/**` stays gitignored.
+- Live WebSocket is not started.

@@ -10,7 +10,7 @@
 - Description: Gap detection uses a fixed `timedelta`. `1m`–`1d` are epoch-aligned; `1w` is a 7-day step from the first bar because week-start weekday is venue-specific. `1M` is a calendar month and is rejected by `timeframe_duration` rather than approximated as 30 days.
 - Why it matters: A 30-day guess would mis-detect gaps around 28–31 day months and leak a false regular grid into later backtests.
 - Suggested options: Keep `1M` unsupported until a human specifies calendar-month policy; or require venue metadata for month boundaries.
-- Recommended next action: V1 default timeframe is `4h`. Do not add monthly gap heuristics in Parquet or Strategy increments.
+- Recommended next action: V1 default timeframe is `4h`. Do not add monthly gap heuristics in WebSocket or Strategy increments.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -79,10 +79,10 @@
 - Severity: LOW
 - Area: Infrastructure
 - Found in: `backend/pyproject.toml`
-- Description: Backend dependencies remain ranged in `pyproject.toml`. CI installs with `pip install -e backend[dev]` and caches from that file. No `uv.lock` / pip-tools lockfile was added, because that would introduce a second package manager or a new pinning workflow not yet approved. Frontend CI uses `npm ci` against `package-lock.json`.
+- Description: Backend dependencies remain ranged in `pyproject.toml` (now including `pyarrow` for Parquet). CI installs with `pip install -e backend[dev]` and caches from that file. No `uv.lock` / pip-tools lockfile was added, because that would introduce a second package manager or a new pinning workflow not yet approved. Frontend CI uses `npm ci` against `package-lock.json`.
 - Why it matters: Reproducible CI/backtests will later need pinned Python installs. This is not a trading-logic defect.
 - Suggested options: Keep pip/pyproject as the single backend toolchain. Add a dedicated lockfile later without switching to uv unless a human approves that package manager.
-- Recommended next action: Leave unpinned until a human chooses pip-tools vs uv. Do not block Phase 1 on this.
+- Recommended next action: Leave unpinned until a human chooses pip-tools vs uv. Do not block Phase 2 on this.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -103,10 +103,10 @@
 - Severity: MEDIUM
 - Area: Docs
 - Found in: GitHub PRs #2, #3, #4, #5, #6
-- Description: Parallel automation runs produced overlapping Phase 0 drafts. Current implementation lineage is PR #11 (`cursor/development-agent-guidelines-e6a8`, Phase 2 Bybit public REST) plus this missing-candle/out-of-order detector increment. PR #2 (`cursor/phase0-foundation-scaffold-1e99`) was used only as a CI workflow-shape reference; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
+- Description: Parallel automation runs produced overlapping Phase 0 drafts. Current implementation lineage is PR #12 (`cursor/development-agent-guidelines-6534`, Phase 2 missing-candle detector) plus this Parquet writer increment. PR #2 (`cursor/phase0-foundation-scaffold-1e99`) was used only as a CI workflow-shape reference; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
 - Why it matters: Merging PR #2 blindly would fork the health API.
 - Suggested options: Continue this lineage. Close or rebase superseded drafts after human review.
-- Recommended next action: Human review should treat PR #11 as previous Phase 2 tip. This increment stacks on PR #11. Close or rebase superseded drafts #2/#3/#4/#5 after review.
+- Recommended next action: Human review should treat PR #12 as previous Phase 2 tip. This increment stacks on PR #12. Close or rebase superseded drafts #2/#3/#4/#5 after review.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -144,7 +144,7 @@
 - Description: Added `UnitOfWork` and repositories for signals, risk decisions, orders, fills, positions, and portfolio snapshots. Reuses existing ORM rows and mapping functions. Commit is explicit; missing commit or exceptions roll back. Duplicate `client_order_id` is `DuplicateClientOrderId`.
 - Why it matters: Callers no longer need to scatter session/commit logic for the trading tables.
 - Suggested options: n/a
-- Recommended next action: Phase 2 gap detection exists. Next smallest task is Parquet writer + dataset metadata/checksum. Do not add WebSocket until historical datasets are versioned.
+- Recommended next action: Phase 2 Parquet writer exists. Next smallest task is WebSocket live ticker/candle with reconnect backoff+jitter. Do not add Binance in that increment.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 

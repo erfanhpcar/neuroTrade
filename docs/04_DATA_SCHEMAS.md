@@ -117,26 +117,32 @@ Skipping `OPEN` or `CLOSING`, or reopening `CLOSED`, is invalid. `CLOSED` quanti
 
 ## Historical Market Data
 
-OHLCV حجیم در PostgreSQL منبع اصلی Research نیست. ساختار پیشنهادی:
+OHLCV حجیم در PostgreSQL منبع اصلی Research نیست. Phase 2 layout:
 
 ```text
 data/market/
   provider=bybit/
     symbol=BTCUSDT/
       timeframe=4h/
-        year=2026/month=08/*.parquet
+        metadata.json
+        year=2026/month=08/ohlcv-v1.parquet
 ```
 
-Metadata هر dataset:
+`ParquetOhlcvStore` (`backend/app/market_data/parquet.py`) writes this tree. Hive `symbol=` strips non-alphanumeric characters (`BTC/USDT` → `BTCUSDT`). Month partitions are physical layout only; one dataset is the full contiguous series at the timeframe directory.
 
-- provider
-- symbol
-- timeframe
-- start/end UTC
-- downloaded_at
+`metadata.json` fields:
+
+- `schema_version` (`ohlcv-v1`)
+- provider, symbol, timeframe
+- start/end UTC (`open_time` of first/last bar)
+- downloaded_at (injected by the caller; the writer has no wall clock)
 - row_count
-- checksum/hash
-- schema_version
+- `dataset_hash` (same SHA-256 as `hash_ohlcv_bars`; bar contents, not file bytes)
+- `files[]`: relative path, row_count, SHA-256 of parquet bytes
+
+Prices and volume are stored as canonical decimal strings, never `float64`. Writes call `require_contiguous_ohlcv` first and refuse empty series. A second write with a different `dataset_hash` is rejected (`ImmutableOhlcvDataset`). An identical hash is idempotent and keeps the original `downloaded_at`. Reads recompute both per-file SHA-256 and `dataset_hash`. Generated files under `backend/data/market/` remain gitignored.
+
+Calendar `1M` is still unsupported (ISSUE-0016). Incremental append of extra months onto an existing hash is not implemented; replace only when the full-series hash matches.
 
 ## Redis
 

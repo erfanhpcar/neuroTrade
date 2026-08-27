@@ -66,12 +66,12 @@ Context: `07_EXTERNAL_SERVICES`, `12_API_COST_RATE_LIMITS`, `backend/AGENTS.md`.
 - [x] historical OHLCV downloader با pagination/rate limit. *(`fetch_ohlcv` paginates backward, max 1000/page; configurable `RateLimitBudget`; unit tests use `httpx.MockTransport`)*
 - [x] UTC normalization و duplicate removal. *(replay + Bybit adapter both use `normalize_bars`; conflicting duplicates raise)*
 - [x] missing-candle/out-of-order detector. *(`inspect_ohlcv` / `inspect_series`; missing grid times, off-grid timestamps, epoch misalignment; `require_contiguous_ohlcv` fail-closed; Bybit logs issues and still returns the series)*
-- [ ] Parquet writer + dataset metadata/checksum.
+- [x] Parquet writer + dataset metadata/checksum. *(`ParquetOhlcvStore`; hive layout + `metadata.json`; `require_contiguous_ohlcv` before write; `dataset_hash` + per-file SHA-256; prices as canonical decimal strings; pyarrow runtime dependency)*
 - [ ] WebSocket live ticker/candle stream.
 - [ ] reconnect با exponential backoff+jitter.
 - [x] replay fixture برای تست بدون اینترنت. *(`ReplayMarketDataProvider` + `backend/tests/replay/btc_usdt_4h.json`; unit tests perform no network I/O)*
 
-**Done:** BTC/USDT historical dataset قابل تکرار ساخته و live snapshot دریافت شود؛ API key لازم نباشد. Phase 2 is **not** complete until Parquet and a live WebSocket snapshot path exist.
+**Done:** BTC/USDT historical dataset قابل تکرار ساخته و live snapshot دریافت شود؛ API key لازم نباشد. Phase 2 is **not** complete until a live WebSocket snapshot path exists. Parquet persistence is implemented; generated datasets stay gitignored.
 
 ---
 

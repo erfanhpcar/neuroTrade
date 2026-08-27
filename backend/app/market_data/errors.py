@@ -40,6 +40,22 @@ class IncompleteOhlcvHistory(MarketDataError):
         self.report = report
 
 
+class EmptyOhlcvDataset(MarketDataError):
+    """A Parquet dataset requires at least one contiguous bar."""
+
+
+class ImmutableOhlcvDataset(MarketDataError):
+    """Refusing to overwrite a stored dataset whose bar hash differs."""
+
+
+class CorruptOhlcvDataset(MarketDataError):
+    """Stored Parquet bytes or metadata do not match the recorded checksums."""
+
+
+class UnknownOhlcvDataset(MarketDataError):
+    """No metadata.json exists for the requested provider/symbol/timeframe."""
+
+
 class UnsupportedTimeframe(MarketDataError):
     """The venue adapter has no mapping for the requested timeframe."""
 

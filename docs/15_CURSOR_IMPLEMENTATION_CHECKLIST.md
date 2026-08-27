@@ -25,7 +25,7 @@
 
 Context: `AGENTS.md`, `00_INDEX`, `01_ARCH_OVERVIEW`, `09_PROJECT_TREE`, `14_DOCKER_DEPLOYMENT`, `16_CODING_AGENT_GUIDELINES`.
 
-- [ ] ساخت/تکمیل `backend/`, `frontend/`, `.github/workflows/` با حفظ `AGENTS.md`های scoped. *(backend + frontend shells exist; CI workflows remain)*
+- [x] ساخت/تکمیل `backend/`, `frontend/`, `.github/workflows/` با حفظ `AGENTS.md`های scoped.
 - [x] Python project با `pyproject.toml` و lint/typecheck/test.
 - [x] FastAPI minimal app + `/api/health`.
 - [x] Next.js minimal dashboard.
@@ -33,11 +33,11 @@ Context: `AGENTS.md`, `00_INDEX`, `01_ARCH_OVERVIEW`, `09_PROJECT_TREE`, `14_DOC
 - [x] Compose برای postgres/redis/backend/trading-worker/frontend.
 - [x] `.env.example` و `.gitignore`.
 - [x] structured logging با correlation/request IDs.
-- [ ] CI: backend tests/lint/typecheck + frontend lint/typecheck/build.
+- [x] CI: backend tests/lint/typecheck + frontend lint/typecheck/build. *(`make backend-check` + `make frontend-check` via `.github/workflows/ci.yml`; first GitHub run must stay green)*
 - [x] commandهای canonical پروژه برای checkها مستند شوند تا Cursor/Codex یک toolchain مشترک اجرا کنند.
 - [x] default `TRADING_MODE=PAPER`.
 
-**Done:** `docker compose up` کل stack را بالا بیاورد و CI سبز باشد. **Phase 0 is not Done** (CI remains).
+**Done:** `docker compose up` کل stack را بالا بیاورد و CI سبز باشد. **Phase 0 is not Done** until the GitHub Actions workflow is green on this branch.
 
 ---
 

@@ -13,7 +13,7 @@ Before changing code, read:
 
 ## Canonical commands
 
-Run from the repository root. These are the shared Cursor/Codex toolchain commands.
+Run from the repository root. These are the shared Cursor/Codex toolchain commands. If `PYTHON` points at a virtualenv, pass an absolute path (`PYTHON=$PWD/.venv/bin/python`); backend targets `cd` into `backend/`.
 
 ```text
 make backend-install      # pip install -e backend[dev]
@@ -37,6 +37,8 @@ make compose-ps
 make compose-down
 ```
 
+GitHub Actions (`.github/workflows/ci.yml`) runs `make backend-check` and `make frontend-check` on pull requests and pushes to `main`. Frontend CI uses `npm ci` against the committed lockfile. Default `TRADING_MODE=PAPER`.
+
 Copy `.env.example` to `.env` for backend overrides. Copy `frontend/.env.example` to `frontend/.env.local` if the control plane is not on `http://127.0.0.1:8000`. Do not commit secrets. Do not put secrets in `NEXT_PUBLIC_*`.
 
 ## Current status
@@ -47,4 +49,4 @@ Phase 0 (Repository Foundation) is in progress:
 - Next.js operator shell displays liveness and trading mode (PAPER by default).
 - Compose defines postgres, redis, backend, trading-worker, and frontend with `TRADING_MODE=PAPER`.
 - Trading worker is a heartbeat stub (no Strategy/Risk/Execution).
-- CI workflows are not implemented yet.
+- GitHub Actions CI runs the canonical backend and frontend checks. Phase 0 Definition of Done still requires a green CI run on GitHub plus a healthy Compose stack.

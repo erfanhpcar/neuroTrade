@@ -31,6 +31,7 @@ help:
 	@echo "  make compose-up          docker compose up --build -d (PAPER)"
 	@echo "  make compose-down        docker compose down"
 	@echo "  make compose-ps          docker compose ps"
+	@echo "GitHub Actions runs make backend-check and make frontend-check (PAPER)."
 
 backend-install:
 	$(PYTHON) -m pip install -e "$(BACKEND_DIR)[dev]"

@@ -7,10 +7,10 @@
 - Severity: MEDIUM
 - Area: Infrastructure
 - Found in: Phase 0 / repository root
-- Description: FastAPI health, Next.js operator shell, trading-worker heartbeat stub, Dockerfiles, and Compose exist and were verified with `docker compose up` (all five services up, `/api/health` returns PAPER, worker logs PAPER heartbeats, frontend BFF proxies health). Phase 0 Definition of Done is still not satisfied because GitHub Actions CI is missing.
-- Why it matters: Agents cannot rely on gated CI until workflows exist.
-- Suggested options: Next increment should add `.github/workflows/ci.yml` running `make backend-check` and `make frontend-check`.
-- Recommended next action: Add CI workflows. Do not start Phase 1 domain/schema until CI exists.
+- Description: FastAPI health, Next.js operator shell, trading-worker heartbeat stub, Dockerfiles, Compose, and `.github/workflows/ci.yml` now exist. Compose was previously verified with `docker compose up`. Phase 0 Definition of Done still requires the GitHub Actions workflow to be green on this branch.
+- Why it matters: Checklist items are not Done until the gated CI run actually passes.
+- Suggested options: Keep this issue open until the first `backend-check` / `frontend-check` GitHub run is green, then close Phase 0.
+- Recommended next action: Do not start Phase 1 domain/schema until CI is green on GitHub. After that, the next smallest Phase 1 task is domain models (not schema yet).
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -19,10 +19,10 @@
 - Severity: LOW
 - Area: Infrastructure
 - Found in: `backend/pyproject.toml`
-- Description: Backend dependencies are ranged in `pyproject.toml` without a lockfile (`uv.lock` or equivalent). Installs can resolve different versions over time.
-- Why it matters: Reproducible CI/backtests will later need pinned installs. This is not a trading-logic defect.
-- Suggested options: Keep pip/pyproject as the single toolchain and add a lockfile when CI is introduced, rather than adding a second package manager now. Frontend already commits `package-lock.json`.
-- Recommended next action: Revisit when GitHub Actions is added in Phase 0.
+- Description: Backend dependencies remain ranged in `pyproject.toml`. CI installs with `pip install -e backend[dev]` and caches from that file. No `uv.lock` / pip-tools lockfile was added, because that would introduce a second package manager or a new pinning workflow not yet approved. Frontend CI uses `npm ci` against `package-lock.json`.
+- Why it matters: Reproducible CI/backtests will later need pinned Python installs. This is not a trading-logic defect.
+- Suggested options: Keep pip/pyproject as the single backend toolchain. Add a dedicated lockfile later without switching to uv unless a human approves that package manager.
+- Recommended next action: Leave unpinned until a human chooses pip-tools vs uv. Do not block Phase 1 on this.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -33,8 +33,8 @@
 - Found in: `make backend-check` / FastAPI 0.141.1 TestClient
 - Description: Pytest emits `StarletteDeprecationWarning: Using httpx with starlette.testclient is deprecated; install httpx2 instead.` Tests still pass.
 - Why it matters: Future Starlette versions may require a new HTTP test client. Adding `httpx2` now would be a new dependency without an approved need.
-- Suggested options: Keep `httpx` until CI exists and Starlette requires the change; then add `httpx2` as a dev extra only.
-- Recommended next action: Do not add a new runtime dependency for this warning. Revisit when CI lands or if tests start failing.
+- Suggested options: Keep `httpx` until Starlette requires the change; then add `httpx2` as a dev extra only.
+- Recommended next action: Do not add a new runtime dependency for this warning. Revisit if CI tests start failing.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -42,11 +42,11 @@
 - Status: OPEN
 - Severity: MEDIUM
 - Area: Docs
-- Found in: GitHub PRs #2, #3, and #4 vs this increment
-- Description: Parallel automation runs produced overlapping Phase 0 drafts. This increment continues PR #4 (`cursor/development-agent-guidelines-1a8a`: FastAPI health + Next.js shell). PR #2 (`cursor/phase0-foundation-scaffold-1e99`) remains a reference for Compose/CI/worker only; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
-- Why it matters: Merging PR #2 blindly would fork the health API. Compose on this lineage keeps health as liveness-only and omits `NEXT_PUBLIC_*` backend URLs.
+- Found in: GitHub PRs #2, #3, #4, #5 vs this increment
+- Description: Parallel automation runs produced overlapping Phase 0 drafts. This increment continues PR #5 (`cursor/development-agent-guidelines-f710`: FastAPI + Next.js + Compose/worker). PR #2 (`cursor/phase0-foundation-scaffold-1e99`) was used only as a CI workflow-shape reference; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
+- Why it matters: Merging PR #2 blindly would fork the health API.
 - Suggested options: Continue this lineage. Close or rebase superseded drafts after human review.
-- Recommended next action: Human review should treat the PR #3/#4 lineage plus this Compose increment as current Phase 0.
+- Recommended next action: Human review should treat the PR #3/#4/#5 lineage plus this CI increment as current Phase 0.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -57,8 +57,8 @@
 - Found in: `frontend/package.json` / `npm audit --omit=dev`
 - Description: After pinning `next@15.5.24` (patched for CVE-2025-66478 and later RSC advisories), `npm audit` still reports a high PostCSS advisory on Next's nested `node_modules/next/node_modules/postcss`. The suggested force-fix is Next 16, a major upgrade not approved for this increment.
 - Why it matters: This is a nested toolchain/CSS stringify issue, not trading logic. Jumping to Next 16 without review would be an unapproved dependency major bump.
-- Suggested options: Stay on Next 15.5.24 for Phase 0. Revisit Next 16 only with an explicit decision when CI exists.
-- Recommended next action: Do not `npm audit fix --force`. Re-check when adding CI.
+- Suggested options: Stay on Next 15.5.24 for Phase 0. Revisit Next 16 only with an explicit decision.
+- Recommended next action: Do not `npm audit fix --force`. Re-check audit output when frontend dependencies change.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 

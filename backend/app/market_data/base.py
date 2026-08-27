@@ -143,7 +143,8 @@ class MarketDataProvider(Protocol):
     Returned series are sorted and de-duplicated. Callers must run
     ``inspect_series`` (or ``require_contiguous_ohlcv``) before treating the
     window as a complete grid. Providers log integrity issues; they do not
-    raise on gaps. Live ticker/candle streaming is not part of this increment.
+    raise on gaps. Live ticker/candle streaming is ``LiveMarketDataStream``,
+    not this REST/replay contract.
     """
 
     @property

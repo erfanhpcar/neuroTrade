@@ -66,18 +66,44 @@ DEFAULT_BYBIT_KLINE_BUDGET = RateLimitBudget(
 )
 
 
-def backoff_seconds(attempt: int, budget: RateLimitBudget, rng: UnitIntervalRng) -> float:
-    """Return sleep time for a 0-based retry attempt, with bounded jitter."""
+def exponential_backoff_seconds(
+    attempt: int,
+    *,
+    initial_seconds: float,
+    max_seconds: float,
+    jitter_ratio: float,
+    rng: UnitIntervalRng,
+) -> float:
+    """Return sleep time for a 0-based retry, with bounded non-negative jitter.
+
+    Delay is ``min(max, initial * 2**attempt)`` plus ``[0, jitter_ratio * base]``.
+    The same formula is used for HTTP retries and WebSocket reconnects.
+    """
 
     if attempt < 0:
         raise MarketDataError("attempt must be >= 0")
-    base = min(
-        budget.max_backoff_seconds,
-        budget.initial_backoff_seconds * (2**attempt),
-    )
+    if initial_seconds <= 0:
+        raise MarketDataError("initial_seconds must be > 0")
+    if max_seconds < initial_seconds:
+        raise MarketDataError("max_seconds must be >= initial_seconds")
+    if not 0 <= jitter_ratio <= 1:
+        raise MarketDataError("jitter_ratio must be between 0 and 1 inclusive")
+    base = min(max_seconds, initial_seconds * (2**attempt))
     sample = float(rng())
-    jitter = base * budget.jitter_ratio * sample
+    jitter = base * jitter_ratio * sample
     return float(base + jitter)
+
+
+def backoff_seconds(attempt: int, budget: RateLimitBudget, rng: UnitIntervalRng) -> float:
+    """Return HTTP retry sleep for a 0-based attempt, with bounded jitter."""
+
+    return exponential_backoff_seconds(
+        attempt,
+        initial_seconds=budget.initial_backoff_seconds,
+        max_seconds=budget.max_backoff_seconds,
+        jitter_ratio=budget.jitter_ratio,
+        rng=rng,
+    )
 
 
 class SlidingWindowRateLimiter:

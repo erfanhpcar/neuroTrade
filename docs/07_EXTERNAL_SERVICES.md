@@ -60,8 +60,9 @@ Contract notes:
 - The adapter always sends `category` (default `spot`) so Bybit cannot silently default the request to `linear`.
 - Historical fetch paginates backward (max 1000 bars/page) and applies a configured per-endpoint rate-limit budget plus exponential backoff+jitter on HTTP 429, HTTP 403 "access too frequent", and `retCode=10006`.
 - Official HTTP IP ceiling is 600 requests / 5 seconds across `api.bybit.com`. The kline adapter default is a conservative 10 req/s and is injectable.
+- `BybitPublicWsStream` (`backend/app/market_data/bybit_ws.py`) is the public live ticker/kline adapter. Official URLs: `wss://stream.bybit.com/v5/public/spot|linear|inverse`. Subscribe `tickers.{symbol}` and `kline.{interval}.{symbol}`. Heartbeat `{"op":"ping"}` every 20s. Reconnect uses `ReconnectPolicy` (exponential backoff + jitter) and resubscribes. No API keys. Unconfirmed klines (`confirm=False`) are not closed bars (`closed_bar()` returns `None`).
 - Binance REST and WebSocket are later Phase 2 items.
-- Unit tests must not depend on the public internet (`ReplayMarketDataProvider`, `httpx.MockTransport`, or a temp-dir `ParquetOhlcvStore`).
+- Unit tests must not depend on the public internet (`ReplayMarketDataProvider`, `httpx.MockTransport`, an injected WebSocket fake, or a temp-dir `ParquetOhlcvStore`).
 
 ## Execution
 

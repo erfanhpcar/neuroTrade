@@ -15,7 +15,7 @@ V0/V1 باید بتواند با هزینه API تقریباً صفر اجرا �
 - REST polling فقط برای recovery/periodic reconciliation
 - reconnect با exponential backoff + jitter
 - snapshot + delta stream در صورت استفاده order book
-- Unit tests must use `ReplayMarketDataProvider` / fixtures or an injected HTTP fake (`httpx.MockTransport`). They must not call public REST or WebSocket endpoints.
+- Unit tests must use `ReplayMarketDataProvider` / fixtures, an injected HTTP fake (`httpx.MockTransport`), or an injected WebSocket fake. They must not call public REST or WebSocket endpoints.
 
 ## Rate limiting
 
@@ -33,6 +33,13 @@ Bybit public REST (`GET /v5/market/kline`) in this increment:
 - Adapter default kline budget: 10 requests / 1 second (injectable `RateLimitBudget`).
 - Retries with backoff+jitter on HTTP 429, HTTP 403 "access too frequent", and JSON `retCode=10006`.
 - Duplicate GET coalescing is not implemented yet; this downloader is sequential.
+
+Bybit public WebSocket (`wss://stream.bybit.com/v5/public/{spot,linear,inverse}`) in this increment:
+
+- Topics: `tickers.{symbol}` and `kline.{interval}.{symbol}` (no private topics).
+- Heartbeat: client `{"op":"ping"}` every 20 seconds (official recommendation).
+- Reconnect: injectable `ReconnectPolicy` (default 1s → 60s cap, jitter 0.2, unbounded attempts) then resubscribe.
+- Unconfirmed kline pushes are not closed bars.
 
 ## Private Trading API
 

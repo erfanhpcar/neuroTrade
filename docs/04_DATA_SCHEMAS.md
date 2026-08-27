@@ -142,6 +142,8 @@ data/market/
 
 Prices and volume are stored as canonical decimal strings, never `float64`. Writes call `require_contiguous_ohlcv` first and refuse empty series. A second write with a different `dataset_hash` is rejected (`ImmutableOhlcvDataset`). An identical hash is idempotent and keeps the original `downloaded_at`. Reads recompute both per-file SHA-256 and `dataset_hash`. Generated files under `backend/data/market/` remain gitignored.
 
+Live ticker/kline WebSocket updates are not stored in Parquet. Unconfirmed klines (`confirm=False`) are in-progress venue OHLC and must not be written as closed historical bars.
+
 Calendar `1M` is still unsupported (ISSUE-0016). Incremental append of extra months onto an existing hash is not implemented; replace only when the full-series hash matches.
 
 ## Redis

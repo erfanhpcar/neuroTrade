@@ -28,6 +28,7 @@ from app.market_data.errors import (
     UnsupportedMarketCategory,
     UnsupportedTimeframe,
 )
+from app.market_data.integrity import log_integrity_issues
 from app.market_data.rate_limit import (
     DEFAULT_BYBIT_KLINE_BUDGET,
     RateLimitBudget,
@@ -216,12 +217,14 @@ class BybitPublicRestProvider:
             )
 
         filtered = tuple(bar for bar in collected if start_utc <= bar.open_time <= end_utc)
-        return OhlcvSeries.from_bars(
+        series = OhlcvSeries.from_bars(
             provider=self.name,
             symbol=canonical_symbol,
             timeframe=canonical_timeframe,
             bars=filtered,
         )
+        log_integrity_issues(series)
+        return series
 
     async def latest_snapshot(
         self,

@@ -38,7 +38,7 @@ Financial fields are `Decimal`. Wire/JSON serialization uses decimal **strings**
 
 `OrderIntent` / `Order` / `Position` use `PositionSide` `LONG` | `SHORT`. Mapping to exchange `BUY`/`SELL` is an Execution concern (Phase 6). Order type (`MARKET`/`LIMIT`) is not modeled yet. `OrderIntent` is a domain handoff object and does **not** have its own table.
 
-Historical OHLCV/`MarketSnapshot` is not stored in PostgreSQL.
+Historical OHLCV/`MarketSnapshot` is not stored in PostgreSQL. Before a later Parquet write, call `require_contiguous_ohlcv` so missing or off-grid bars cannot be persisted silently. `inspect_series` reports gaps without changing `fetch_ohlcv` return values.
 
 ## PostgreSQL table columns (Phase 1 persistence)
 

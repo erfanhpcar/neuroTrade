@@ -1,188 +1,163 @@
-# ۱۱ — راهنمای پیاده‌سازی (بدون ابهام)
+# 11 — Implementation Guide
 
-## استقرار: Docker (اجباری به‌عنوان روش رسمی)
+## قبل از هر کد
 
-**کل سیستم** — PostgreSQL، Redis، بک‌اند FastAPI، فرانت‌اند Next.js — با **`docker compose`** اجرا می‌شود. مرجع کامل: **`14_DOCKER_DEPLOYMENT.md`**.
+چه با Cursor و چه با Codex، agent باید به‌ترتیب این منابع را رعایت کند:
 
-```bash
-cp .env.example .env   # پر کردن کلیدها
-docker compose up -d --build
-```
+1. `AGENTS.md` در ریشه؛
+2. nested `AGENTS.md` مسیر هدف (`backend/AGENTS.md` یا `frontend/AGENTS.md`)؛
+3. `docs/00_INDEX.md`؛
+4. سندهای subsystem مربوط به Phase؛
+5. `docs/16_CODING_AGENT_GUIDELINES.md`؛
+6. برای Cursor، Ruleهای `.cursor/rules/*.mdc` نیز به صورت persistent/scoped اعمال می‌شوند.
 
-نصب جداگانهٔ Python/Node فقط برای توسعهٔ محلی اختیاری است (بخش «راه‌اندازی بدون Docker» پایین).
+Checklist اجرایی canonical: `15_CURSOR_IMPLEMENTATION_CHECKLIST.md` (با وجود نام تاریخی فایل، برای Cursor و Codex یکسان است).
 
-## پیش‌نیازها
+## اصل توسعه
 
-- **Docker Engine 24+** و **Docker Compose v2**
-- حساب **Testnet** صرافی (Bybit یا Binance)
-- API key: **OpenRouter** (تک درگاه LLM) + CryptoPanic + Testnet صرافی
-- **اجباری:** مطالعه `12_COST_OPTIMIZATION.md` قبل از wiring ایجنت‌ها
+هر فاز یک خروجی قابل تست می‌سازد. به فاز بعدی نرو تا Definition of Done فاز فعلی پاس نشده باشد.
 
-## ساختار ریشه پروژه
+## فازها
 
-```
-neuroTrade/          # یا ai-trading-bot/
-├── docs/            # همین پوشه
-├── backend/
-└── frontend/
-```
+### Phase 0 — Foundation
 
-## متغیرهای محیطی
+- monorepo skeleton
+- Docker Compose
+- FastAPI health
+- Next.js shell
+- PostgreSQL/Redis
+- trading-worker process
+- CI
+- `.env.example`
+- canonical lint/typecheck/test commands
 
-### `backend/.env`
+**Done:** Compose healthy + CI green + default PAPER.
 
-```env
-# Database
-# در Docker (پیش‌فرض compose):
-# DATABASE_URL=postgresql+asyncpg://neurotrade:PASS@postgres:5432/neurotrade
-# REDIS_URL=redis://redis:6379/0
-# روی میزبان (dev بدون container بک‌اند):
-DATABASE_URL=postgresql+asyncpg://neurotrade:pass@localhost:5432/neurotrade
-REDIS_URL=redis://localhost:6379/0
+### Phase 1 — Domain/Persistence
 
-# Exchange (Testnet)
-EXCHANGE_ID=bybit
-EXCHANGE_API_KEY=
-EXCHANGE_SECRET=
-EXCHANGE_SANDBOX=true
+- domain types
+- migrations
+- repositories
+- state machines
+- idempotency fields
 
-# LLM — OpenRouter واحد (07_EXTERNAL_SERVICES)
-OPENROUTER_API_KEY=
-STRATEGIST_MODEL=anthropic/claude-3.5-sonnet
-SENTIMENT_MODEL=deepseek/deepseek-v3
-DECISION_MODEL=anthropic/claude-3.5-sonnet
-LLM_FALLBACK_MODEL=deepseek/deepseek-r1
-AUDIT_MODEL=anthropic/claude-3.5-sonnet
+**Done:** empty DB migration + rollback/recovery test.
 
-# News
-CRYPTOPANIC_TOKEN=
+### Phase 2 — Market Data
 
-# Telegram (اختیاری)
-TELEGRAM_BOT_TOKEN=
-TELEGRAM_CHAT_ID=
+- provider interface
+- public provider
+- historical downloader
+- Parquet
+- WebSocket
+- validation/gap detection
 
-# App — فرکانس از تایم‌فریم (نه 300 ثابت برای 1h)
-DEFAULT_TICKER=BTC/USDT
-DEFAULT_TIMEFRAME=1h
-# برای 1h خودکار 900؛ override دستی:
-# CYCLE_INTERVAL_SECONDS=900
-ZONE_GATE_BUFFER_PCT=0.001
-TICKER_POLL_SECONDS=120
-CORS_ORIGINS=http://localhost:3000
-```
+**Done:** reproducible BTC dataset + live snapshot.
 
-### `frontend/.env.local`
+### Phase 3 — Strategy V1
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_WS_URL=ws://localhost:8000/ws/dashboard
-```
+- Strategy interface
+- trend/momentum implementation
+- config/version/hash
+- deterministic tests
 
-## راه‌اندازی بدون Docker (فقط توسعه — اختیاری)
+**Done:** same input => same signals; no look-ahead.
 
-اگر فقط یک سرویس را دیباگ می‌کنید، DB/Redis را همچنان با Compose بالا بیاورید:
+### Phase 4 — Backtest
 
-```bash
-docker compose up -d postgres redis
-```
+- simulator
+- execution costs
+- metrics
+- OOS/walk-forward
+- reproducibility manifest
 
-سپس بک‌اند/فرانت را روی میزبان (نیاز: Python 3.11+، Node 20+):
+**Done:** repeatable report with realistic assumptions.
 
-```bash
-cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8000
-cd frontend && npm install && npm run dev
-```
+### Phase 5 — Risk/Portfolio
 
-## چک‌لیست Docker (فاز A)
+- equity/exposure
+- risk reservation
+- sizing
+- limits/HALT
 
-- [ ] `docker-compose.yml` + `backend/Dockerfile` + `frontend/Dockerfile`
-- [ ] `.env.example` در ریشه — `DATABASE_URL` با host `postgres`
-- [ ] `docker compose up -d --build` — هر چهار سرویس healthy
-- [ ] `init_db` داخل container — جداول `04`
+**Done:** execution unreachable without Risk approval.
 
-## ترتیب شروع پیشنهادی (Risk یا Exchange؟)
+### Phase 6 — Paper Execution/Reconciliation
 
-**اول: خط لوله داده + صرافی (فاز A → B)**، بعد **Risk Engine (فاز B+)**.
+- adapter contract
+- paper adapter
+- order/fill/position state
+- restart recovery
+- reconciliation
 
-| ترتیب | دلیل |
-|-------|------|
-| ۱. `config` + `database` + health | زمینه اجرا |
-| ۲. `exchange.py` + `retriever` | `fetch_ohlcv` / `fetch_balance` ورودی Zone Gate و `calculate_position_size` |
-| ۳. `risk.py` + تست واحد | فرمول‌های `03` با قیمت/بالانس mock و سپس balance واقعی testnet |
-| ۴. `zone_trigger` → LLM → graph | بدون داده زنده، Gate و ایجنت معنا ندارند |
+**Done:** duplicate/timeout/restart tests pass.
 
-Risk را **موازی** می‌توانی با تست‌های خالص (بدون CCXT) شروع کنی، اما **یکپارچه‌سازی** بعد از Exchange منطقی‌تر است چون `position_size` به `account_balance` واقعی نیاز دارد.
+### Phase 7 — Worker
 
----
+- event/schedule loop
+- pipeline
+- heartbeat
+- graceful shutdown/recovery
 
-## فازبندی توسعه (چک‌لیست)
+**Done:** sustained PAPER run without divergence.
 
-### فاز A — اسکلت بک‌اند
-- [ ] `config.py` — لود env با Pydantic Settings
-- [ ] `core/database.py` — SQLAlchemy async + جداول `04`
-- [ ] `GET /api/health`, `GET/PATCH /api/settings`
-- [ ] ردیف پیش‌فرض `system_settings` با `is_active=false`
+### Phase 8 — API/UI
 
-### فاز B — صرافی و Retriever
-- [ ] `core/exchange.py` — CCXT async + rate limit 500ms
-- [ ] نود `retrieve_data` در LangGraph (بدون LLM)
-- [ ] Cron/APScheduler هر `CYCLE_INTERVAL_SECONDS`
+- REST/WS
+- dashboard
+- SEMI approval
+- HALT/FLATTEN
 
-### فاز B+ — Risk Engine (قطعی)
-- [ ] `core/risk.py` — `calculate_position_size` + Pydantic validator طبق `03`
-- [ ] تست واحد: LONG/SHORT نامعتبر SL → رد
-- [ ] اتصال `fetch_balance()` از exchange در مسیر اجرا
+**Done:** UI resyncs after reconnect and source-of-truth remains consistent.
 
-### فاز C — Zone Gate + ایجنت‌ها
-- [ ] `core/zone_trigger.py` — Pandas، `should_invoke_llm()` طبق `12`
-- [ ] `core/llm_client.py` — `AsyncOpenAI` + OpenRouter (07)
-- [ ] `agents/graph.py` — retrieve → **zone_gate** → (hit) strategist ∥ sentiment → decision
-- [ ] `config.resolve_cycle_interval()` — `1h`=900s، `4h`=1800s
-- [ ] پرامپت‌های `08` — بدون LLM وقتی `zone_hit=false`
+### Phase 9 — Exchange Sandbox/Demo
 
-### فاز D — API و WebSocket
-- [ ] `POST /api/emergency/kill-switch`
-- [ ] approve/reject signals
-- [ ] WebSocket + Redis pub/sub — رویدادهای `10`
-- [ ] ذخیره `agent_signals` و `trade_positions`
+Only use documented official APIs. Do not use real money.
 
-### فاز E — فرانت‌اند
-- [ ] shadcn/ui طبق `05`
-- [ ] `WebSocketContext.tsx`
-- [ ] صفحات: `/`, `/signals`, `/analytics`, `/settings`
-- [ ] `ApprovalModal` روی `SIGNAL_APPROVAL_REQUEST`
+**Done:** small sandbox/demo SEMI flow + reconciliation.
 
-### فاز F — بک‌تست
-- [ ] `backtest/engine.py` — قوانین `06`
-- [ ] دانلود OHLCV به `data/historical/`
+### Phase 10 — Live Hardening
 
-### فاز G — Post-Mortem + Guardrail پرامپت
-- [ ] `core/trade_ledger.py` — `data/ledger/{trade_id}.json` + `trade_ledger`
-- [ ] `scripts/weekly_audit.py` — فقط `prompt_change_proposals` (PENDING) + `market_regime`
-- [ ] `prompts/baseline/` + `prompts/active/` — جدا از هم
-- [ ] `POST /api/prompt-proposals/{id}/approve|reject` + `rollback` — `10`
-- [ ] `apply_prompt_tuning.py` — **فقط** از handler Approve؛ ممنوع در cron
-- [ ] `PROMPT_TUNING_REQUEST` WebSocket + صفحه `/settings/prompt-tuning` — `05`
-- [ ] تست: ممیزی هفته ANOMALOUS → بدون Approve پرامپت active تغییر نکند
+Security, monitoring, backup, runbooks, drills, strategy promotion evidence.
 
-## تعریف «Done» برای MVP
+### Phase 11 — AI Optional
 
-1. چرخه ۵ دقیقه‌ای روی Testnet بدون خطای Pydantic
-2. حالت SEMI: مودال تأیید → approve → اردر واقعی در testnet
-3. Kill-Switch: بستن پوزیشن‌ها + `SUSPENDED`
-4. داشبورد: وضعیت ایجنت + پوزیشن‌های باز + daily drawdown
+Only research/post-mortem/advisory experiments after deterministic baseline.
 
-## تست دستی حیاتی
+## Policy برای تصمیم‌های جدید
 
-| سناریو | انتظار |
-|--------|--------|
-| SL بالاتر از entry برای LONG | Risk رد کند، لاگ در DB |
-| daily drawdown ≥ 3% | `is_active` خودکار false تا فردا |
-| قطع WS | UI reconnect بدون crash |
-| reject signal | هیچ اردری به صرافی نرود |
+اگر حین implementation نیاز به تصمیمی خارج از docs به وجود آمد، agent نباید با حدس خودش تصمیم معماری بگیرد. برای موارد زیر plan/trade-off ارائه و قبل از implementation تصمیم را مطرح کند:
 
-## نکات Cursor
+- architecture pattern جدید؛
+- dependency مهم جدید؛
+- تغییر Strategy/Risk semantics؛
+- تغییر Order/Execution semantics؛
+- migration مخرب؛
+- REST/WebSocket contract breaking change؛
+- exchange/data provider جدید یا undocumented behavior.
 
-- همیشه `@docs/11_IMPLEMENTATION_GUIDE.md` + سند موضوع فعلی را cite کن
-- هر PR/feature یک فاز از چک‌لیست بالا
-- **هرگز** Withdrawal را در API Key صرافی فعال نکن
+Task مشخص داخل یک Phase تصویب‌شده می‌تواند پس از plan کوتاه ادامه پیدا کند.
+
+## Definition of Done عمومی
+
+هر feature قبل از Done:
+
+1. relevant tests pass;
+2. lint/typecheck pass;
+3. migration/API contracts بررسی شده؛
+4. docs در صورت تغییر رفتار به‌روز شده؛
+5. هیچ secret وارد Git/log نشده؛
+6. exact command results گزارش شده؛
+7. known risks و کارهای اجرا نشده شفاف اعلام شده‌اند.
+
+## چیزی که نباید انجام دهیم
+
+- پیاده‌سازی همه فازها در یک prompt/PR؛
+- live key در development؛
+- تغییر Strategy برای بهتر کردن یک backtest خاص بدون OOS؛
+- duplicate implementation برای strategy live/backtest؛
+- اتصال UI مستقیم به Exchange؛
+- retry کور order؛
+- استفاده از AI برای دور زدن Risk؛
+- اضافه کردن abstractionهای بزرگ بدون نیاز واقعی؛
+- اعلام Done بر اساس «looks correct» بدون verification.

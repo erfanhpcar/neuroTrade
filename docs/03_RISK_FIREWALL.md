@@ -1,90 +1,72 @@
-این سند وظیفه دارد قوانین قطعی ریاضی و خطوط قرمز سیستم را در سطح لایه کد (Deterministic Code) تعریف کند. هوش مصنوعی مجاز است در مورد جهت بازار «پیشنهاد» دهد، اما حق ندارد قوانین این سند را نقض کند.
+# 03 — Risk Firewall
 
-## ۱. فرمول ریاضی محاسبه حجم پوزیشن (Position Sizing Formula)
+Risk Engine کاملاً deterministic است و هیچ Strategy یا AI حق دور زدن آن را ندارد.
 
-سیستم برای هر معامله از مدل **ریسک ثابت بر اساس درصد حساب (Fixed Fractional Position Sizing)** استفاده می‌کند. حجم پوزیشن نباید یک عدد ثابت یا حدسی باشد، بلکه باید به صورت داینامیک بر اساس فاصله نقطه ورود تا حد ضرر محاسبه شود.
+## مسئولیت‌ها
 
-### فرمول اصلی:
+- position sizing
+- max risk per trade
+- max portfolio exposure
+- max open positions
+- max daily loss / drawdown lock
+- correlated exposure limits
+- volatility-aware sizing
+- reject malformed/stale signals
 
-Plaintext
+## Position sizing
 
-```
-Position Size (in Base Currency) = (Account Balance * Risk Percentage) / (Entry Price - Stop Loss Price)
+فرمول پایه:
 
-```
-
-### الگوریتم پیاده‌سازی در کد پایتون (Risk Engine):
-
-Python
-
-```
-def calculate_position_size(account_balance: float, risk_pct: float, entry_price: float, stop_loss: float) -> float:
-    """
-    محاسبه دقیق حجم معامله به طوری که در صورت خوردن استاپ‌لاس، دقیقا به اندازه risk_pct از حساب کسر شود.
-    """
-    if entry_price == stop_loss:
-        raise ValueError("Entry price and Stop Loss cannot be equal.")
-        
-    # میزان ضرر دلاری مجاز در این معامله
-    allowed_loss_usd = account_balance * risk_pct
-    
-    # فاصله استاپ لاس به درصد یا قیمت
-    risk_per_unit = abs(entry_price - stop_loss)
-    
-    # حجم پوزیشن به واحد ارز پایه (مثلا تعداد بیت‌کوین)
-    position_size = allowed_loss_usd / risk_per_unit
-    
-    return position_size
-
+```text
+allowed_loss = equity * risk_pct
+risk_per_unit = abs(entry - stop)
+raw_size = allowed_loss / risk_per_unit
 ```
 
-## ۲. خطوط قرمز و سقف‌های مجاز حساب (Hard Risk Limits)
+در پیاده‌سازی واقعی باید fee، expected slippage، contract multiplier، leverage rules، quantity step و min/max notional لحاظ شود.
 
-این تنظیمات در فایل کانفیگ اصلی بک‌اند به صورت `hardcoded` قفل می‌شوند و حتی با پرامپت هوش مصنوعی هم قابل تغییر نیستند:
+## Hard limits اولیه
 
-- **حداکثر ریسک در هر معامله (Max Risk Per Trade):** ۱.۵٪ کل موجودی حساب. (پیش‌فرض پیشنهادی: ۱٪).
-- **حداکثر دروپ‌داون روزانه (Max Daily Drawdown):** ۳٪ کل حساب. اگر مجموع ضررهای پوزیشن‌های بسته شده در یک روز تقویمی به ۳٪ برسد، سیستم بک‌اند تا ساعت 00:00 روز بعد تمام پوزیشن‌های باز را مارکت‌کلوز (Market Close) کرده و هیچ اردر جدیدی ثبت نمی‌کند.
-- **حداکثر تعداد پوزیشن‌های همزمان (Max Open Positions):** حداکثر ۳ پوزیشن باز در کل سیستم به صورت همزمان جهت جلوگیری از همبستگی منفی ریسک (Risk Correlation).
+- default risk per trade: `0.5%`
+- hard max risk per trade: `1.0%` تا زمانی که داده کافی برای تغییر وجود نداشته باشد
+- max daily realized + unrealized loss: configurable با سقف سخت
+- max concurrent positions: configurable
+- max aggregate open risk: configurable
 
-## ۳. پروتکل ضد توهم هوش مصنوعی (Anti-Hallucination Protocol)
+اعداد نهایی باید از config versioned بیایند و تغییرشان audit شود.
 
-برای اینکه خروجی متنی یا JSON مدل‌های زبانی باعث خرابی در صرافی نشود، یک لایه اعتبارسنجی (Validation Layer) با **Pydantic** قبل از ارسال اردر به صرافی (CCXT) قرار می‌گیرد:
+## فرمان‌های اضطراری
 
-Plaintext
+### HALT
 
+- ساخت signal جدید می‌تواند ادامه یابد اما execution جدید ممنوع است.
+- pending entry orders طبق policy لغو می‌شوند.
+- positionهای باز خودکار market-close نمی‌شوند مگر policy صریح.
+
+### FLATTEN_ALL
+
+- cancel تمام pending orders
+- close تمام positions طبق safe execution policy
+- state → `HALTED`
+- نیازمند تأیید دو مرحله‌ای در UI
+
+## RiskDecision
+
+```text
+APPROVED | REJECTED
+reason_codes[]
+calculated_size
+estimated_risk_usd
+estimated_risk_pct
+portfolio_open_risk_pct
 ```
-+------------------------------+
-|  AI Agent Prompt Decision    | -> خروجی جی‌سان هوش مصنوعی (مثلا استاپ‌لاس را اشتباهی بالاتر از ورود بگذارد)
-+------------------------------+
-               |
-               v
-+------------------------------+
-|    Pydantic Risk Validator   | -> بررسی منطقی: آیا استاپ‌لاس پوزیشن لانگ پایین‌تر از قیمت ورود است؟
-+------------------------------+
-               |
-      +--------+--------+
-      |                 |
-(تایید منطقی)      (رد پکت - خطا)
-      v                 v
-+--------------+   +------------------------------------+
-| CCXT Execute |   | Cancel Order & Log Event to Next.js|
-+--------------+   +------------------------------------+
 
-```
+## تست‌های حیاتی
 
-### چک‌لیست اعتبارسنجی اردر:
-
-1. **پوزیشن خرید (LONG):** باید قیمت حد ضرر (SL) از قیمت ورود کمتر، و قیمت حد سود (TP) از قیمت ورود بیشتر باشد.
-2. **پوزیشن فروش (SHORT):** باید قیمت حد ضرر (SL) از قیمت ورود بیشتر، و قیمت حد سود (TP) از قیمت ورود کمتر باشد.
-3. **تطابق نقدینگی (Min/Max Notional):** حجم پوزیشن محاسبه شده نباید از حداقل اردر مجاز صرافی کمتر یا از نقدینگی اردر بوک بیشتر باشد.
-
-## ۴. مکانیسم سوئیچ اضطراری (Emergency Kill-Switch)
-
-فرانت‌اند Next.js یک دکمه قرمز بزرگ به نام **Emergency Kill-Switch** خواهد داشت. با فشردن این دکمه:
-
-1. یک سیگنال با بالاترین اولویت (High Priority HTTP POST) به FastAPI ارسال می‌شود.
-2. بک‌اند فورا تمام پوزیشن‌های باز را در صرافی به قیمت مارکت می‌بندد.
-3. تمام اردرهای لیمیتِ کاشته شده (Pending Orders) لغو می‌شوند.
-4. وضعیت سیستم به `SUSPENDED` تغییر کرده و تا زمان فعال‌سازی دستی توسط شما، کاملاً متوقف می‌ماند.
-
-این سند هم به طور کامل ساختار ریاضی و ایمنی سیستم را شفاف کرد. حالا می‌توانیم سراغ فایل بعدی یعنی **«ساختار جداول دیتابیس و ارتباطات دیتای سیستم»** (`docs/04_DATA_SCHEMAS.md`) برویم تا دقیقاً مشخص کنیم چه چیزهایی باید در دیتابیس ذخیره شوند و فرمت پکت‌های وب‌ساکت برای فرانت‌اند چطور باشد.
+- LONG با stop >= entry رد شود.
+- SHORT با stop <= entry رد شود.
+- stale signal رد شود.
+- size بعد از rounding از hard max عبور نکند.
+- fee/slippage budget در worst-case لحاظ شود.
+- daily lock حتی بعد از restart حفظ شود.
+- race condition دو signal همزمان نتواند exposure limit را دور بزند.

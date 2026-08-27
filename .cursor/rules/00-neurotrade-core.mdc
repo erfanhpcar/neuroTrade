@@ -1,0 +1,20 @@
+---
+description: "Core neuroTrade architecture, safety, workflow, and verification rules"
+alwaysApply: true
+---
+
+# neuroTrade core rule
+
+Read and follow @AGENTS.md before making changes. `AGENTS.md` is the shared rule set for Cursor and Codex.
+
+For every non-trivial task:
+- Read @docs/00_INDEX.md and the subsystem docs relevant to the requested work.
+- Inspect the existing implementation before editing.
+- Keep the change limited to the approved phase/concern.
+- If the change would alter locked architecture, strategy/risk semantics, execution behavior, schema/API contracts, or add a new dependency/integration not already approved, stop and present the decision for approval first.
+- Never default to live trading. `PAPER` is the safe default.
+- Never commit or print secrets.
+- Never let Strategy/AI bypass deterministic Risk and Execution boundaries.
+- Never blindly retry an ambiguous order submission; reconcile first.
+- Run relevant lint/typecheck/tests and report exact results.
+- Update architecture/API/behavior docs in the same change when contracts change.

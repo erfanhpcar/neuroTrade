@@ -1,63 +1,76 @@
 # neuroTrade — فهرست مستندات
 
-این پوشه **منبع حقیقت (Single Source of Truth)** پروژه است. هنگام پیاده‌سازی در Cursor، کل پوشه `docs/` را با `@` به کانتکست اضافه کنید.
+این پوشه **Single Source of Truth** پروژه است. هدف پروژه از این نسخه به بعد ساخت یک **Quant/Systematic Trading Platform** است؛ نه یک AI Trading Bot.
+
+## اصول قفل‌شده
+
+1. هسته تصمیم‌گیری معاملاتی در V0/V1 **کاملاً deterministic** و قابل بک‌تست است.
+2. همان Strategy Engine باید هم در Backtest و هم در Live/Paper استفاده شود.
+3. Strategy فقط `Signal` تولید می‌کند؛ Risk Engine درباره حجم، اجازه/رد و محدودیت‌های حساب تصمیم می‌گیرد.
+4. Execution Engine از Strategy جداست و تمام idempotency، precision، fee، slippage، retry و reconciliation را مدیریت می‌کند.
+5. PostgreSQL منبع حقیقت تراکنشی است؛ Redis فقط cache/pub-sub/lock است؛ OHLCV تاریخی در Parquet نگه‌داری می‌شود.
+6. AI در MVP الزامی نیست و حق دور زدن Risk/Execution را ندارد.
+7. توسعه به ترتیب `Research → Backtest → Paper → Testnet/SEMI → Live` انجام می‌شود.
+8. معماری به صرافی خاص وابسته نیست؛ Market Data Provider و Execution Provider آداپتر دارند.
+9. هر coding agent قبل از تغییر پروژه باید `AGENTS.md` و Ruleهای scoped مربوط به مسیر را رعایت کند.
+
+## قوانین Cursor / Codex
+
+- `AGENTS.md` در ریشه: قواعد مشترک کل repository برای Codex و Cursor.
+- `backend/AGENTS.md` و `frontend/AGENTS.md`: قواعد تخصصی هر بخش.
+- `.cursor/rules/*.mdc`: Ruleهای persistent/scoped مخصوص Cursor.
+- `16_CODING_AGENT_GUIDELINES.md`: توضیح کامل workflow، coding standards و trading safety policy.
 
 ## نقشه اسناد
 
-| فایل | موضوع | زمان مطالعه |
-|------|--------|-------------|
-| [01_ARCH_OVERVIEW.md](./01_ARCH_OVERVIEW.md) | معماری کلان، پشته فناوری، دیاگرام لایه‌ها | قبل از هر کدی |
-| [02_AGENT_PROTOCOLS.md](./02_AGENT_PROTOCOLS.md) | **استراتژی S/D**، Fresh Zones، Confluence، LangGraph State | فاز بک‌اند ایجنت |
-| [13_POST_MORTEM_REFLECTION.md](./13_POST_MORTEM_REFLECTION.md) | Ledger، ممیزی هفتگی، Prompt Tuning (**بدون Live Learning**) | پس از MVP / فاز G |
-| [12_COST_OPTIMIZATION.md](./12_COST_OPTIMIZATION.md) | **هزینه API <۲۰$/ماه** — فرکانس، ماشه زون، DeepSeek | **قبل از فعال‌سازی LLM** |
-| [03_RISK_FIREWALL.md](./03_RISK_FIREWALL.md) | فرمول پوزیشن‌سایز، خطوط قرمز، Kill-Switch | همزمان با `core/risk.py` |
-| [04_DATA_SCHEMAS.md](./04_DATA_SCHEMAS.md) | جداول PostgreSQL، پکت‌های WebSocket | فاز دیتابیس + WS |
-| [05_DASHBOARD_UI.md](./05_DASHBOARD_UI.md) | Next.js، shadcn/ui، صفحات و کامپوننت‌ها | فاز فرانت‌اند |
-| [06_BACKTESTING.md](./06_BACKTESTING.md) | بک‌تست هیبرید، متریک‌ها | فاز بک‌تست |
-| [07_EXTERNAL_SERVICES.md](./07_EXTERNAL_SERVICES.md) | CCXT، CryptoPanic، LLM، تلگرام | فاز یکپارچه‌سازی |
-| [08_PROMPT_DICTIONARY.md](./08_PROMPT_DICTIONARY.md) | System Prompt و JSON Schema هر ایجنت | فاز ایجنت |
-| [09_PROJECT_TREE.md](./09_PROJECT_TREE.md) | ساختار درختی فایل‌های پروژه | همیشه مرجع |
-| [10_REST_API.md](./10_REST_API.md) | قرارداد REST + WebSocket + TypeScript types | فاز API |
-| [11_IMPLEMENTATION_GUIDE.md](./11_IMPLEMENTATION_GUIDE.md) | ترتیب ساخت، env، چک‌لیست آماده‌سازی | **شروع پیاده‌سازی** |
-| [14_DOCKER_DEPLOYMENT.md](./14_DOCKER_DEPLOYMENT.md) | **اجرای کل سیستم با Docker Compose** (روش رسمی) | قبل از اولین `docker compose up` |
+| فایل | موضوع |
+|---|---|
+| `01_ARCH_OVERVIEW.md` | معماری کلان، Control Plane / Trading Worker، تکنولوژی‌ها |
+| `02_STRATEGY_ENGINE.md` | قرارداد Strategy، Signal، Strategy Versioning، استراتژی V1 |
+| `03_RISK_FIREWALL.md` | Risk Engine، Position Sizing، HALT/FLATTEN، محدودیت‌های سخت |
+| `04_DATA_SCHEMAS.md` | PostgreSQL schema، Parquet، idempotency |
+| `05_DASHBOARD_UI.md` | Next.js dashboard، صفحات و کنترل‌های عملیاتی |
+| `06_BACKTESTING.md` | Backtest واقعی، OOS، Walk-Forward، Promotion Gates |
+| `07_EXTERNAL_SERVICES.md` | Market Data، صرافی، The True Trade، CCXT، API keys |
+| `08_AI_EXTENSION.md` | AI اختیاری در فازهای آینده؛ خارج از مسیر اجرای معامله |
+| `09_PROJECT_TREE.md` | ساختار پیشنهادی monorepo |
+| `10_REST_API.md` | REST/WebSocket contract |
+| `11_IMPLEMENTATION_GUIDE.md` | ترتیب ساخت و Definition of Done |
+| `12_API_COST_RATE_LIMITS.md` | هزینه داده، rate limit، WebSocket/REST policy |
+| `13_STRATEGY_GOVERNANCE.md` | نسخه‌بندی، promotion، post-mortem، rollback |
+| `14_DOCKER_DEPLOYMENT.md` | Docker Compose و سرویس‌ها |
+| `15_CURSOR_IMPLEMENTATION_CHECKLIST.md` | چک‌لیست Phase-by-Phase؛ برای Cursor و Codex قابل استفاده است |
+| `16_CODING_AGENT_GUIDELINES.md` | قوانین کدنویسی و خط‌مشی کار با Cursor/Codex |
 
-> **سیاست هزینه:** Claude فقط پس از `zone_gate` — جزئیات اجباری در `12_COST_OPTIMIZATION.md`.
+## ترتیب پیاده‌سازی
 
-> **توجه:** فایل `SYSTEM_DESIGN.md` نسخه اولیه همان محتوای `01_ARCH_OVERVIEW.md` است؛ برای جلوگیری از ابهام فقط `01` را به‌روز نگه دارید.
-
-## ترتیب پیشنهادی پیاده‌سازی
-
+```text
+0. Skeleton + Docker + CI
+1. Market Data + Historical Storage
+2. Strategy Engine V1
+3. Deterministic Backtest + Metrics
+4. Risk + Portfolio
+5. Paper Execution + Reconciliation
+6. FastAPI + WebSocket + Dashboard
+7. Exchange Testnet / SEMI
+8. Live hardening
+9. AI research extensions (اختیاری)
 ```
-۰. Docker Compose (کل استک)              → 14_DOCKER_DEPLOYMENT
-۱. زیرساخت (PostgreSQL, Redis, .env)     → 11 + 14
-۲. core: database, exchange, risk        → 03, 04, 07
-۳. zone_trigger + agents + llm_router  → 02, 08, 12
-۴. api REST + WebSocket                  → 10, 04
-۵. frontend با shadcn                    → 05, 10
-۶. backtest                              → 06
-۷. ledger + ممیزی هفتگی (آفلاین)        → 13
-```
 
-## تصمیم‌های معماری قفل‌شده (بدون بحث مجدد در کد)
+## تصمیم‌های فعلی فناوری
 
-| موضوع | تصمیم |
-|--------|--------|
-| بک‌اند | Python 3.11+ / FastAPI / LangGraph |
-| فرانت‌اند | Next.js 14+ App Router / Tailwind / **shadcn/ui** |
-| دیتابیس | PostgreSQL (+ Redis برای WS broadcast) |
-| صرافی (تست) | Bybit Testnet یا Binance Testnet via CCXT |
-| حالت معامله | `SEMI` (پیش‌فرض) یا `FULL` |
-| ریسک هر ترید | پیش‌فرض ۱٪، سقف سخت ۱.۵٪ |
-| فرکانس چرخه | `1h` → هر ۱۵ دقیقه؛ `4h` → هر ۳۰ دقیقه (`12`) |
-| فراخوانی LLM | فقط پس از Zone Gate (Pandas) — Claude = Decision trigger |
-| LLM | **فقط OpenRouter** — `core/llm_client.py` — مدل‌ها از env |
-| بودجه LLM | هدف **۱۵–۲۰$/ماه** + Zone Gate — `12` |
-| یادگیری AI | **Post-Mortem فقط** — Ledger + ممیزی — `13`؛ Live Learning ممنوع |
-| تغییر پرامپت | **فقط با Approve دستی در UI** — Guardrail overfitting — `13` §د |
-| استراتژی | Supply/Demand، Fresh Zones، امتیاز زون، Confluence LTF — `02` بخش ۰ |
-| استقرار / اجرا | **Docker Compose** — postgres، redis، backend، frontend — `14` |
+| لایه | تصمیم |
+|---|---|
+| Backend | Python 3.11+ / FastAPI |
+| Trading process | Worker مستقل از HTTP API |
+| Frontend | Next.js App Router + Tailwind + shadcn/ui |
+| DB | PostgreSQL |
+| Cache/Realtime | Redis |
+| Historical market data | Parquet |
+| Exchange abstraction | Adapter؛ CCXT در صورت پشتیبانی، native adapter در غیر این صورت |
+| Initial public market data | Bybit/Binance public REST + WebSocket |
+| Planned account execution | Adapter برای The True Trade پس از اعتبارسنجی مستندات API |
+| AI | خاموش/اختیاری در MVP |
+| Deployment | Docker Compose |
 
-## ناسازگاری‌هایی که در اسناد یکسان شدند
-
-- **Data Retriever** در معماری یک **نود غیر-LLM** در LangGraph است (واکشی CCXT + CryptoPanic)، نه ایجنت با پرامپت — جزئیات در `02_AGENT_PROTOCOLS` بخش ۴.
-- **Risk Engine** جدا از ایجنت Decision است؛ AI فقط پیشنهاد می‌دهد، اجرا فقط پس از Pydantic + Risk Firewall.
+> وضعیت فعلی مخزن: فاز طراحی. قبل از ایجاد کد اجرایی، اسناد 00 تا 16 و Ruleهای repository باید مرجع coding agent باشند.

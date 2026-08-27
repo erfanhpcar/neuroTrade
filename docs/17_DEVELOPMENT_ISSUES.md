@@ -30,7 +30,7 @@
 - Status: OPEN
 - Severity: MEDIUM
 - Area: Docs
-- Found in: GitHub PRs #2, #3, #4, #5 vs this increment
+- Found in: GitHub PRs #2, #3, #4, #5, #6
 - Description: Parallel automation runs produced overlapping Phase 0 drafts. This increment continues PR #5 (`cursor/development-agent-guidelines-f710`: FastAPI + Next.js + Compose/worker). PR #2 (`cursor/phase0-foundation-scaffold-1e99`) was used only as a CI workflow-shape reference; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
 - Why it matters: Merging PR #2 blindly would fork the health API.
 - Suggested options: Continue this lineage. Close or rebase superseded drafts after human review.

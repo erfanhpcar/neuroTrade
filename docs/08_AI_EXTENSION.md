@@ -1,36 +1,67 @@
-# 08 — AI Extension (Future / Optional)
+# 08 — AI Extension (Optional, Later)
 
-AI در MVP جزو مسیر تولید یا اجرای معامله نیست.
+## وضعیت
+
+AI در V0/V1 dependency پروژه نیست. هیچ API key هوش مصنوعی برای research/backtest/paper/testnet اولیه لازم نیست.
+
+## نکته مهم درباره Cursor/Codex
+
+استفاده از **Cursor یا Codex برای نوشتن کد پروژه** با استفاده از **AI داخل محصول neuroTrade** دو موضوع جداست.
+
+- Cursor/Codex ابزار توسعه هستند و باید Ruleهای `AGENTS.md`, nested `AGENTS.md`, `.cursor/rules/` و `16_CODING_AGENT_GUIDELINES.md` را رعایت کنند.
+- محصول neuroTrade در MVP هیچ LLM را برای تصمیم معاملاتی فراخوانی نمی‌کند.
+
+بنابراین وجود coding agent به معنی اضافه‌شدن OpenAI/OpenRouter/Claude API به runtime پروژه نیست.
 
 ## کاربردهای مجاز آینده
 
-- توضیح human-readable یک Signal قطعی
-- post-mortem معاملات
-- خلاصه‌سازی نتایج backtest
-- research assistant برای مقایسه experimentها
-- anomaly explanation
-- پیشنهاد hypothesis جدید برای تست
+پس از baseline deterministic و فقط به صورت آزمایشی:
 
-## کاربردهای ممنوع در هسته
+- توضیح یک trade/signal برای اپراتور؛
+- post-mortem معاملات؛
+- خلاصه‌کردن backtest/sensitivity results؛
+- research assistant برای تولید hypothesis؛
+- anomaly triage برای لاگ/عملیات؛
+- تحلیل اخبار به عنوان research feature جدا، در صورت داشتن OOS evidence.
 
-- تعیین مستقیم BUY/SELL بدون Strategy rule
-- تغییر Risk limits در runtime
-- تغییر خودکار strategy active پس از یک هفته بد/خوب
-- ارسال order مستقیم
-- live self-learning
+## کاربردهای ممنوع بدون evidence/تصمیم جدید
 
-## A/B policy
+- LLM مستقیماً `create_order` را صدا بزند؛
+- LLM Risk Engine را override کند؛
+- LLM config/strategy active را خودکار تغییر دهد؛
+- LLM از نتایج چند معامله live فوراً «یاد بگیرد» و production logic را عوض کند؛
+- یک confidence متنی بدون baseline کمی باعث trade شود.
 
-اگر در آینده AI filter اضافه شد، باید یک baseline بدون AI حفظ شود:
+## معماری آینده
 
 ```text
-Quant Baseline
-vs
-Same Quant Strategy + AI Advisory Filter
+Deterministic Trading Platform ──> Logs / Results / Ledger
+                                      │
+                                      ▼
+                                AI Research Layer
+                                ├─ Explain
+                                ├─ Post-Mortem
+                                └─ Hypothesis
 ```
 
-فقط با OOS/forward evidence می‌توان AI را promote کرد. هزینه API، latency و failure rate نیز جزو معیار مقایسه است.
+مسیر Execution:
 
-## Fail-safe
+```text
+Market → Strategy → Risk → Execution
+```
 
-در unavailable بودن AI، مسیر deterministic باید بتواند طبق mode تعریف‌شده ادامه دهد یا HALT شود؛ AI outage نباید state معامله را خراب کند.
+بدون AI باقی می‌ماند مگر یک ADR/نسخه آینده صریحاً خلاف آن را تصویب کند.
+
+## Evaluation
+
+هر feature AI باید با baseline بدون AI مقایسه شود:
+
+- OOS / walk-forward؛
+- forward/paper؛
+- latency؛
+- API failure behavior؛
+- cost؛
+- incremental expectancy / risk؛
+- reproducibility.
+
+اگر بهبود قابل اندازه‌گیری ندارد، AI dependency اضافه نشود.

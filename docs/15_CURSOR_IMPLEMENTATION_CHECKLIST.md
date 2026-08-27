@@ -50,10 +50,10 @@ Context: `04_DATA_SCHEMAS`, `09_PROJECT_TREE`, `backend/AGENTS.md`.
 - [x] SQLAlchemy async + migration framework. *(SQLAlchemy 2 async + Alembic; `make backend-migrate`)*
 - [x] جداول settings/strategies/signals/risk/orders/fills/positions/portfolio/events/backtests. *(revision `d587f5e75b76`; SQLite not supported)*
 - [x] unique `client_order_id`. *(`uq_orders_client_order_id` on `orders`; fills share the parent id and are not unique)*
-- [ ] repository layer و transaction boundaries.
+- [x] repository layer و transaction boundaries. *(`UnitOfWork` + repositories for signals/risk/orders/fills/positions/portfolio; explicit commit, rollback on exception or missing commit; `DuplicateClientOrderId`)*
 - [x] تست Decimal serialization و state transitionهای نامعتبر. *(in-memory plus PostgreSQL NUMERIC round-trip)*
 
-**Done:** migration از DB خالی اجرا و rollback/recovery تست شود. Phase 1 is **not** done until the repository layer exists. This increment verified empty-DB upgrade, unique `client_order_id`, NUMERIC round-trip, and downgrade+upgrade recovery.
+**Done:** empty-DB upgrade, unique `client_order_id`, NUMERIC round-trip, downgrade+upgrade recovery, and repository/unit-of-work tests (commit, rollback, duplicate `client_order_id`, invalid order-status skip) are verified. Phase 1 Definition of Done is satisfied. Do not start Phase 2 until this lineage is reviewed.
 
 ---
 

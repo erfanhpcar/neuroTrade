@@ -10,6 +10,7 @@ from app.domain.position import Position, PositionStatus
 from app.domain.risk import RiskDecision, RiskVerdict
 from app.domain.signal import Signal, SignalSide
 from app.infrastructure.db.mapping import (
+    apply_order_to_row,
     order_from_row,
     order_to_row,
     portfolio_from_row,
@@ -63,6 +64,24 @@ def test_money_columns_use_numeric_not_float() -> None:
         SignalRow.__table__.c.trigger_price,
     ):
         assert isinstance(column.type, Numeric)
+
+
+def test_apply_order_to_row_updates_status_without_new_identity() -> None:
+    order = Order(
+        order_id=uuid4(),
+        client_order_id="nt-client-1",
+        symbol="BTC/USDT",
+        side=PositionSide.LONG,
+        quantity=Decimal("0.010"),
+        filled_quantity=Decimal("0"),
+        status=OrderStatus.CREATED,
+        created_at=_utc(),
+    )
+    row = order_to_row(order)
+    approved = order.transition(OrderStatus.RISK_APPROVED)
+    apply_order_to_row(row, approved)
+    assert row.order_id == order.order_id
+    assert order_from_row(row) == approved
 
 
 def test_order_mapping_round_trip_preserves_decimal() -> None:

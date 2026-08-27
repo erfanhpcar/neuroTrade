@@ -53,4 +53,9 @@ Phase 0 (Repository Foundation) is complete:
 - Trading worker is a heartbeat stub (no Strategy/Risk/Execution).
 - GitHub Actions CI runs the canonical backend and frontend checks and is green.
 
-Phase 1 persistence increment (SQLAlchemy async + Alembic) maps documented tables in `backend/app/infrastructure/db/`. Domain dataclasses stay independent of SQLAlchemy. Repository APIs are not started. Do not enable live trading.
+Phase 1 (Domain Models & Database) is complete on this lineage:
+
+- Domain dataclasses remain independent of SQLAlchemy/FastAPI/CCXT.
+- Alembic revision `d587f5e75b76` creates the documented PostgreSQL tables.
+- `UnitOfWork` + repositories persist signals, risk decisions, orders, fills, positions, and portfolio snapshots.
+- Default `TRADING_MODE=PAPER`. Do not enable live trading.

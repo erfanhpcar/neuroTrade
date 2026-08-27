@@ -27,6 +27,6 @@ def create_async_engine_from_url(database_url: str) -> AsyncEngine:
 
 
 def create_session_factory(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
-    """Session factory with explicit commit. Not a repository."""
+    """Session factory for ``UnitOfWork``. Callers must not scatter ``session.commit()``."""
 
     return async_sessionmaker(engine, expire_on_commit=False, autoflush=False)

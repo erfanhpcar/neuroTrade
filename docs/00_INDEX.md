@@ -74,4 +74,4 @@
 | AI | خاموش/اختیاری در MVP |
 | Deployment | Docker Compose |
 
-> وضعیت فعلی مخزن: **Phase 0 complete. Phase 1 complete. Phase 2 in progress** (`MarketDataProvider`, offline `ReplayMarketDataProvider`, Bybit public REST kline adapter, OHLCV gap/off-grid detector, immutable Parquet writer + dataset metadata). Default `TRADING_MODE=PAPER`. Next is WebSocket live ticker/candle with reconnect backoff. Documents 00–17 and repository `AGENTS.md` rules remain the source of truth.
+> وضعیت فعلی مخزن: **Phase 0 complete. Phase 1 complete. Phase 2 in progress** (`MarketDataProvider`, offline `ReplayMarketDataProvider`, Bybit public REST kline adapter, OHLCV gap/off-grid detector, immutable Parquet writer, Bybit public WebSocket ticker/kline stream with reconnect backoff). Default `TRADING_MODE=PAPER`. Phase 2 Definition of Done is not satisfied until a live public snapshot is observed outside CI fakes. Documents 00–17 and repository `AGENTS.md` rules remain the source of truth.

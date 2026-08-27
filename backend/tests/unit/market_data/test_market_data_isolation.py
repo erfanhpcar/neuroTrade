@@ -3,7 +3,7 @@ from pathlib import Path
 
 MARKET_DATA_ROOT = Path(__file__).resolve().parents[3] / "app" / "market_data"
 
-# Contract modules stay HTTP-free. Venue adapters may use httpx only.
+# Contract modules stay HTTP/WS-free. Venue adapters may use httpx or websockets.
 CONTRACT_FILES = {
     "__init__.py",
     "base.py",
@@ -11,10 +11,13 @@ CONTRACT_FILES = {
     "integrity.py",
     "parquet.py",
     "rate_limit.py",
+    "reconnect.py",
     "replay.py",
+    "stream.py",
     "timeframe.py",
 }
-VENUE_ADAPTER_FILES = {"bybit.py"}
+VENUE_REST_ADAPTER_FILES = {"bybit.py"}
+VENUE_WS_ADAPTER_FILES = {"bybit_ws.py"}
 
 FORBIDDEN_EVERYWHERE = {
     "aiohttp",
@@ -55,13 +58,26 @@ def test_contract_modules_do_not_import_network_or_frameworks() -> None:
     assert offenders == []
 
 
-def test_venue_adapters_may_use_httpx_but_not_ccxt_or_frameworks() -> None:
+def test_venue_rest_adapters_may_use_httpx_but_not_ccxt_or_frameworks() -> None:
     offenders: list[str] = []
-    for name in sorted(VENUE_ADAPTER_FILES):
+    for name in sorted(VENUE_REST_ADAPTER_FILES):
         path = MARKET_DATA_ROOT / name
         imported = _imported_roots(path)
         assert "httpx" in imported
+        assert "websockets" not in imported
         bad = sorted(imported & FORBIDDEN_EVERYWHERE)
+        if bad:
+            offenders.append(f"{path.name}: {', '.join(bad)}")
+    assert offenders == []
+
+
+def test_venue_ws_adapters_may_use_websockets_but_not_ccxt_or_frameworks() -> None:
+    offenders: list[str] = []
+    for name in sorted(VENUE_WS_ADAPTER_FILES):
+        path = MARKET_DATA_ROOT / name
+        imported = _imported_roots(path)
+        assert "websockets" in imported
+        bad = sorted((imported & FORBIDDEN_EVERYWHERE) - {"websockets"})
         if bad:
             offenders.append(f"{path.name}: {', '.join(bad)}")
     assert offenders == []

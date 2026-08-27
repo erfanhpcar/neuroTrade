@@ -37,6 +37,9 @@ neuroTrade/
 │   │   │   ├── base.py            # MarketDataProvider + OhlcvSeries
 │   │   │   ├── replay.py          # fixture-backed provider; no network
 │   │   │   ├── bybit.py           # public REST kline adapter (no API key)
+│   │   │   ├── bybit_ws.py        # public WS ticker/kline adapter (no API key)
+│   │   │   ├── stream.py          # LiveMarketDataStream + ticker/candle types
+│   │   │   ├── reconnect.py       # WS reconnect backoff + jitter
 │   │   │   ├── integrity.py       # missing-candle / off-grid detector
 │   │   │   ├── parquet.py         # immutable OHLCV Parquet store + metadata
 │   │   │   ├── timeframe.py       # fixed bar durations for gap detection

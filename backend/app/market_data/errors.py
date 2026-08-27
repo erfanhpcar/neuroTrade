@@ -70,3 +70,11 @@ class MarketDataHttpError(MarketDataError):
 
 class MarketDataRateLimited(MarketDataHttpError):
     """The venue rejected the request for exceeding its documented rate limit."""
+
+
+class MarketDataStreamError(MarketDataError):
+    """Public WebSocket subscribe or payload handling failed."""
+
+
+class MarketDataStreamDisconnected(MarketDataStreamError):
+    """The live stream dropped and reconnect attempts were exhausted."""

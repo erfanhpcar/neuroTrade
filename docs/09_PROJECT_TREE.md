@@ -8,19 +8,22 @@ neuroTrade/
 │       ├── 00-neurotrade-core.mdc
 │       ├── backend-python.mdc
 │       └── frontend-nextjs.mdc
-├── docker-compose.yml
-├── docker-compose.override.yml
+├── Makefile                      # canonical lint/typecheck/test commands
+├── docker-compose.yml            # Phase 0 remaining
+├── docker-compose.override.yml   # Phase 0 remaining
+├── .gitignore
 ├── .env.example
 ├── docs/
 │   ├── 00_INDEX.md
 │   ├── ...
-│   └── 16_CODING_AGENT_GUIDELINES.md
+│   ├── 16_CODING_AGENT_GUIDELINES.md
+│   └── 17_DEVELOPMENT_ISSUES.md
 ├── backend/
 │   ├── AGENTS.md                 # قواعد scoped بک‌اند
 │   ├── app/
-│   │   ├── main.py
-│   │   ├── config.py
-│   │   ├── domain/
+│   │   ├── main.py               # FastAPI control plane
+│   │   ├── config.py             # TRADING_MODE default PAPER
+│   │   ├── domain/               # Phase 1+
 │   │   │   ├── market.py
 │   │   │   ├── signal.py
 │   │   │   ├── order.py

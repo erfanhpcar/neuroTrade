@@ -41,6 +41,7 @@
 | `14_DOCKER_DEPLOYMENT.md` | Docker Compose و سرویس‌ها |
 | `15_CURSOR_IMPLEMENTATION_CHECKLIST.md` | چک‌لیست Phase-by-Phase؛ برای Cursor و Codex قابل استفاده است |
 | `16_CODING_AGENT_GUIDELINES.md` | قوانین کدنویسی و خط‌مشی کار با Cursor/Codex |
+| `17_DEVELOPMENT_ISSUES.md` | لاگ مسائل فعال، تصمیم‌های لازم و بدهی فنی |
 
 ## ترتیب پیاده‌سازی
 
@@ -73,4 +74,4 @@
 | AI | خاموش/اختیاری در MVP |
 | Deployment | Docker Compose |
 
-> وضعیت فعلی مخزن: فاز طراحی. قبل از ایجاد کد اجرایی، اسناد 00 تا 16 و Ruleهای repository باید مرجع coding agent باشند.
+> وضعیت فعلی مخزن: **Phase 0 in progress**. Backend FastAPI health and a Next.js operator shell exist. Docker Compose, trading-worker process, and CI are not done. Documents 00–17 and repository `AGENTS.md` rules remain the source of truth before further implementation.

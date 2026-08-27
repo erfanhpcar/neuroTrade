@@ -1,0 +1,1 @@
+"""neuroTrade backend application package."""

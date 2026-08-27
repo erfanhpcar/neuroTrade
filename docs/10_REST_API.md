@@ -3,11 +3,26 @@
 ## REST
 
 ### System
-- `GET /api/health`
+- `GET /api/health` — liveness only in Phase 0; does not probe PostgreSQL/Redis yet.
 - `GET /api/system/status`
 - `PATCH /api/system/mode`
 - `POST /api/system/halt`
 - `POST /api/system/flatten-all`
+
+#### `GET /api/health`
+
+```json
+{
+  "status": "ok",
+  "service": "control-plane",
+  "trading_mode": "PAPER",
+  "app_env": "development"
+}
+```
+
+- `trading_mode` is `PAPER` or `SEMI`. `FULL` is rejected at process startup until Phase 10.
+- Response header `X-Request-ID` echoes the incoming request ID or a generated UUID.
+- This is a liveness check, not a dependency readiness check.
 
 ### Strategies
 - `GET /api/strategies`

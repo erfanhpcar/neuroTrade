@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     trading_mode: TradingMode = TradingMode.PAPER
     log_level: str = "INFO"
-    # Accepted from Compose/.env in Phase 0 but unused until Phase 1 persistence.
+    # Used by Alembic and the persistence layer. Redis remains unused until a consumer exists.
     database_url: str = (
         "postgresql+asyncpg://neurotrade:neurotrade_dev_password@localhost:5432/neurotrade"
     )

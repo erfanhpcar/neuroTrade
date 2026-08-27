@@ -47,13 +47,13 @@ Context: `04_DATA_SCHEMAS`, `09_PROJECT_TREE`, `backend/AGENTS.md`.
 
 - [x] Domain modelهای MarketSnapshot, Signal, RiskDecision, OrderIntent, Order, Fill, Position, PortfolioState. *(in-memory dataclasses in `backend/app/domain/`; no FastAPI/SQLAlchemy/CCXT imports)*
 - [x] Enum/state machineها. *(explicit `ORDER_TRANSITIONS` / `POSITION_TRANSITIONS`; invalid transitions raise `InvalidStateTransition`)*
-- [ ] SQLAlchemy async + migration framework.
-- [ ] جداول settings/strategies/signals/risk/orders/fills/positions/portfolio/events/backtests.
-- [ ] unique `client_order_id`. *(domain requires a non-empty id on Order/OrderIntent/Fill; DB uniqueness is the next persistence increment)*
+- [x] SQLAlchemy async + migration framework. *(SQLAlchemy 2 async + Alembic; `make backend-migrate`)*
+- [x] جداول settings/strategies/signals/risk/orders/fills/positions/portfolio/events/backtests. *(revision `d587f5e75b76`; SQLite not supported)*
+- [x] unique `client_order_id`. *(`uq_orders_client_order_id` on `orders`; fills share the parent id and are not unique)*
 - [ ] repository layer و transaction boundaries.
-- [x] تست Decimal serialization و state transitionهای نامعتبر.
+- [x] تست Decimal serialization و state transitionهای نامعتبر. *(in-memory plus PostgreSQL NUMERIC round-trip)*
 
-**Done:** migration از DB خالی اجرا و rollback/recovery تست شود. Phase 1 is **not** done until persistence/migrations exist.
+**Done:** migration از DB خالی اجرا و rollback/recovery تست شود. Phase 1 is **not** done until the repository layer exists. This increment verified empty-DB upgrade, unique `client_order_id`, NUMERIC round-trip, and downgrade+upgrade recovery.
 
 ---
 

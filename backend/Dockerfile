@@ -13,8 +13,9 @@ WORKDIR /app
 
 RUN useradd --create-home --uid 1000 neurotrade
 
-COPY pyproject.toml AGENTS.md ./
+COPY pyproject.toml AGENTS.md alembic.ini ./
 COPY app ./app
+COPY alembic ./alembic
 
 RUN pip install --upgrade pip \
     && pip install . \

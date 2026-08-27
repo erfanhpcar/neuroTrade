@@ -8,6 +8,7 @@ NPM ?= npm
 COMPOSE ?= docker compose
 
 .PHONY: help backend-install backend-lint backend-format backend-typecheck backend-test backend-check backend-run \
+	backend-migrate backend-migrate-down \
 	frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-run \
 	compose-config compose-up compose-down compose-ps
 
@@ -20,6 +21,8 @@ help:
 	@echo "  make backend-test         pytest"
 	@echo "  make backend-check        lint + typecheck + tests"
 	@echo "  make backend-run          uvicorn control plane on :8000"
+	@echo "  make backend-migrate      alembic upgrade head"
+	@echo "  make backend-migrate-down alembic downgrade -1"
 	@echo "  make frontend-install     npm install in frontend/"
 	@echo "  make frontend-lint        next lint"
 	@echo "  make frontend-typecheck   tsc --noEmit"
@@ -31,7 +34,7 @@ help:
 	@echo "  make compose-up          docker compose up --build -d (PAPER)"
 	@echo "  make compose-down        docker compose down"
 	@echo "  make compose-ps          docker compose ps"
-	@echo "GitHub Actions runs make backend-check and make frontend-check (PAPER)."
+	@echo "GitHub Actions runs make backend-check (with PostgreSQL) and make frontend-check (PAPER)."
 
 backend-install:
 	$(PYTHON) -m pip install -e "$(BACKEND_DIR)[dev]"
@@ -54,6 +57,12 @@ backend-check: backend-lint backend-typecheck backend-test
 
 backend-run:
 	cd $(BACKEND_DIR) && $(PYTHON) -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+
+backend-migrate:
+	cd $(BACKEND_DIR) && $(PYTHON) -m alembic upgrade head
+
+backend-migrate-down:
+	cd $(BACKEND_DIR) && $(PYTHON) -m alembic downgrade -1
 
 frontend-install:
 	cd $(FRONTEND_DIR) && $(NPM) install

@@ -22,6 +22,8 @@ make backend-typecheck    # mypy app
 make backend-test         # pytest
 make backend-check        # lint + typecheck + tests
 make backend-run          # uvicorn control plane on 127.0.0.1:8000
+make backend-migrate      # alembic upgrade head (requires PostgreSQL)
+make backend-migrate-down # alembic downgrade -1
 
 make frontend-install     # npm install in frontend/
 make frontend-lint        # next lint
@@ -37,7 +39,7 @@ make compose-ps
 make compose-down
 ```
 
-GitHub Actions (`.github/workflows/ci.yml`) runs `make backend-check` and `make frontend-check` on pull requests and pushes to `main`. Frontend CI uses `npm ci` against the committed lockfile. Default `TRADING_MODE=PAPER`.
+GitHub Actions (`.github/workflows/ci.yml`) runs `make backend-check` and `make frontend-check` on pull requests and pushes to `main`. Backend CI starts PostgreSQL 16 for Alembic integration tests. Frontend CI uses `npm ci` against the committed lockfile. Default `TRADING_MODE=PAPER`.
 
 Copy `.env.example` to `.env` for backend overrides. Copy `frontend/.env.example` to `frontend/.env.local` if the control plane is not on `http://127.0.0.1:8000`. Do not commit secrets. Do not put secrets in `NEXT_PUBLIC_*`.
 
@@ -51,4 +53,4 @@ Phase 0 (Repository Foundation) is complete:
 - Trading worker is a heartbeat stub (no Strategy/Risk/Execution).
 - GitHub Actions CI runs the canonical backend and frontend checks and is green.
 
-Phase 1 first increment (in-memory domain models and state machines) is in `backend/app/domain/`. SQLAlchemy/migrations are not started. Do not enable live trading.
+Phase 1 persistence increment (SQLAlchemy async + Alembic) maps documented tables in `backend/app/infrastructure/db/`. Domain dataclasses stay independent of SQLAlchemy. Repository APIs are not started. Do not enable live trading.

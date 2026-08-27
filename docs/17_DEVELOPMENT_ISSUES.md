@@ -2,6 +2,30 @@
 
 ## Active Issues
 
+### ISSUE-0010 — Order terminal transitions were underspecified
+- Status: OPEN
+- Severity: MEDIUM
+- Area: Execution
+- Found in: `docs/04_DATA_SCHEMAS.md` / `backend/app/domain/order.py`
+- Description: The original order diagram listed `CANCELED | REJECTED | FAILED` without saying which non-terminal states may enter them. Phase 1 implements an explicit `ORDER_TRANSITIONS` table, including `CREATED → REJECTED` (risk reject before submit) and `RISK_APPROVED → CANCELED` (cancel/HALT before submit). Happy-path skipping remains forbidden.
+- Why it matters: Wrong edges would later allow duplicate submission or block HALT-cancel of an unsent order.
+- Suggested options: Keep the implemented table; tighten or extend it only with a documented execution-semantics change.
+- Recommended next action: Human confirm the table in `docs/04_DATA_SCHEMAS.md` before Phase 6 paper execution uses it.
+- Created: 2026-08-27
+- Last reviewed: 2026-08-27
+
+### ISSUE-0011 — Exchange BUY/SELL and order type are not on domain Order
+- Status: OPEN
+- Severity: LOW
+- Area: Execution
+- Found in: `backend/app/domain/order.py`
+- Description: Domain `Order`/`OrderIntent` use `PositionSide` LONG/SHORT and do not include `MARKET`/`LIMIT`. Docs do not specify those execution fields yet.
+- Why it matters: Private/paper adapters will need an exchange side and order type. Inventing them now would be an unapproved execution-semantic decision.
+- Suggested options: Add exchange side/type at the Execution adapter boundary in Phase 6, keeping domain direction as LONG/SHORT.
+- Recommended next action: Leave unset until `ExecutionAdapter` is specified in Phase 6.
+- Created: 2026-08-27
+- Last reviewed: 2026-08-27
+
 ### ISSUE-0002 — Python dependencies are not locked
 - Status: OPEN
 - Severity: LOW
@@ -31,10 +55,10 @@
 - Severity: MEDIUM
 - Area: Docs
 - Found in: GitHub PRs #2, #3, #4, #5, #6
-- Description: Parallel automation runs produced overlapping Phase 0 drafts. This increment continues PR #5 (`cursor/development-agent-guidelines-f710`: FastAPI + Next.js + Compose/worker). PR #2 (`cursor/phase0-foundation-scaffold-1e99`) was used only as a CI workflow-shape reference; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
+- Description: Parallel automation runs produced overlapping Phase 0 drafts. Current implementation lineage is PR #6 (`cursor/phase0-github-actions-ci`) plus this Phase 1 domain-model increment. PR #2 (`cursor/phase0-foundation-scaffold-1e99`) was used only as a CI workflow-shape reference; its `/api/health` body (`dependencies.postgres/redis`, `status: ok|degraded`) still conflicts with the documented liveness contract and was not adopted.
 - Why it matters: Merging PR #2 blindly would fork the health API.
 - Suggested options: Continue this lineage. Close or rebase superseded drafts after human review.
-- Recommended next action: Human review should treat PR #6 (`cursor/phase0-github-actions-ci`) as current Phase 0. Close or rebase superseded drafts #2/#3/#4/#5 after review.
+- Recommended next action: Human review should treat PR #6 as current Phase 0 and this branch as Phase 1 domain models stacked on it. Close or rebase superseded drafts #2/#3/#4/#5 after review.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 
@@ -72,7 +96,7 @@
 - Description: FastAPI health, Next.js operator shell, trading-worker heartbeat stub, Dockerfiles, Compose, and `.github/workflows/ci.yml` exist. Compose was verified with `docker compose up` on the prior increment. GitHub Actions run 33101838301 is green (`backend-check` 25s, `frontend-check` 42s).
 - Why it matters: Phase 0 Definition of Done required Compose plus gated CI.
 - Suggested options: n/a
-- Recommended next action: Start Phase 1 with framework-independent domain models only. Do not add SQLAlchemy/migrations in the same increment as the first domain types.
+- Recommended next action: Start the next Phase 1 increment: SQLAlchemy async + Alembic migrations for the documented tables, including unique `client_order_id`. Do not add a second domain model layer.
 - Created: 2026-08-27
 - Last reviewed: 2026-08-27
 

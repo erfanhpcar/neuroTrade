@@ -45,15 +45,15 @@ Context: `AGENTS.md`, `00_INDEX`, `01_ARCH_OVERVIEW`, `09_PROJECT_TREE`, `14_DOC
 
 Context: `04_DATA_SCHEMAS`, `09_PROJECT_TREE`, `backend/AGENTS.md`.
 
-- [ ] Domain modelهای MarketSnapshot, Signal, RiskDecision, OrderIntent, Order, Fill, Position, PortfolioState.
-- [ ] Enum/state machineها.
+- [x] Domain modelهای MarketSnapshot, Signal, RiskDecision, OrderIntent, Order, Fill, Position, PortfolioState. *(in-memory dataclasses in `backend/app/domain/`; no FastAPI/SQLAlchemy/CCXT imports)*
+- [x] Enum/state machineها. *(explicit `ORDER_TRANSITIONS` / `POSITION_TRANSITIONS`; invalid transitions raise `InvalidStateTransition`)*
 - [ ] SQLAlchemy async + migration framework.
 - [ ] جداول settings/strategies/signals/risk/orders/fills/positions/portfolio/events/backtests.
-- [ ] unique `client_order_id`.
+- [ ] unique `client_order_id`. *(domain requires a non-empty id on Order/OrderIntent/Fill; DB uniqueness is the next persistence increment)*
 - [ ] repository layer و transaction boundaries.
-- [ ] تست Decimal serialization و state transitionهای نامعتبر.
+- [x] تست Decimal serialization و state transitionهای نامعتبر.
 
-**Done:** migration از DB خالی اجرا و rollback/recovery تست شود.
+**Done:** migration از DB خالی اجرا و rollback/recovery تست شود. Phase 1 is **not** done until persistence/migrations exist.
 
 ---
 

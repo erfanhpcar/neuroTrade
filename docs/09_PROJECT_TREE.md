@@ -37,6 +37,8 @@ neuroTrade/
 │   │   │   ├── base.py            # MarketDataProvider + OhlcvSeries
 │   │   │   ├── replay.py          # fixture-backed provider; no network
 │   │   │   ├── bybit.py           # public REST kline adapter (no API key)
+│   │   │   ├── integrity.py       # missing-candle / off-grid detector
+│   │   │   ├── timeframe.py       # fixed bar durations for gap detection
 │   │   │   ├── rate_limit.py      # per-endpoint budget + backoff
 │   │   │   └── binance.py         # later public REST/WS adapter
 │   │   ├── risk/

@@ -8,8 +8,10 @@ CONTRACT_FILES = {
     "__init__.py",
     "base.py",
     "errors.py",
+    "integrity.py",
     "rate_limit.py",
     "replay.py",
+    "timeframe.py",
 }
 VENUE_ADAPTER_FILES = {"bybit.py"}
 

@@ -27,6 +27,7 @@ from app.market_data.errors import (
     UnsupportedMarketCategory,
     UnsupportedTimeframe,
 )
+from app.market_data.integrity import inspect_series
 from app.market_data.rate_limit import RateLimitBudget, SlidingWindowRateLimiter
 
 
@@ -178,6 +179,24 @@ def test_fetch_ohlcv_parses_reverse_list_to_chronological_decimals() -> None:
         assert request.url.params["symbol"] == "BTCUSDT"
         assert request.url.params["interval"] == "240"
         assert "x-bapi-api-key" not in {key.lower() for key in request.headers}
+        report = inspect_series(series)
+        assert report.has_issues is False
+        assert report.input_was_unordered is False
+
+    asyncio.run(run())
+
+
+def test_gapped_kline_window_is_detected() -> None:
+    fake = FakeBybit()
+    fake.queue_json([_row(8), _row(0)])
+
+    async def run() -> None:
+        async with bybit_provider(fake) as (provider, _clock):
+            series = await provider.fetch_ohlcv("BTC/USDT", "4h", start=_utc(0), end=_utc(8))
+        report = inspect_series(series)
+        assert [bar.open_time for bar in series.bars] == [_utc(0), _utc(8)]
+        assert report.has_issues is True
+        assert report.missing_open_times == (_utc(4),)
 
     asyncio.run(run())
 

@@ -54,6 +54,9 @@ def normalize_bars(bars: Sequence[OhlcvBar]) -> tuple[OhlcvBar, ...]:
     Identical duplicates (same ``open_time`` and OHLCV) collapse to one bar.
     Conflicting duplicates raise ``ConflictingDuplicateBars`` instead of picking
     a winner. ``OhlcvBar`` already rejects naive / non-UTC timestamps.
+
+    Sorting does not detect missing candles. Use ``inspect_ohlcv`` /
+    ``inspect_series`` so gaps and off-grid timestamps are not ignored.
     """
 
     if not bars:
@@ -137,7 +140,10 @@ class MarketDataProvider(Protocol):
     That matches the current ``MarketSnapshot`` look-ahead guard. Whether a bar
     should instead be withheld until it closes is ISSUE-0014.
 
-    Live ticker/candle streaming is not part of this increment.
+    Returned series are sorted and de-duplicated. Callers must run
+    ``inspect_series`` (or ``require_contiguous_ohlcv``) before treating the
+    window as a complete grid. Providers log integrity issues; they do not
+    raise on gaps. Live ticker/candle streaming is not part of this increment.
     """
 
     @property

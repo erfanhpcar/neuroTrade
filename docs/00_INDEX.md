@@ -74,4 +74,4 @@
 | AI | خاموش/اختیاری در MVP |
 | Deployment | Docker Compose |
 
-> وضعیت فعلی مخزن: **Phase 0 complete. Phase 1 complete. Phase 2 in progress** (`MarketDataProvider`, offline `ReplayMarketDataProvider`, Bybit public REST kline adapter). Default `TRADING_MODE=PAPER`. Next is missing-candle/out-of-order detection, then Parquet. Documents 00–17 and repository `AGENTS.md` rules remain the source of truth.
+> وضعیت فعلی مخزن: **Phase 0 complete. Phase 1 complete. Phase 2 in progress** (`MarketDataProvider`, offline `ReplayMarketDataProvider`, Bybit public REST kline adapter, OHLCV gap/off-grid detector). Default `TRADING_MODE=PAPER`. Next is Parquet writer + dataset metadata. Documents 00–17 and repository `AGENTS.md` rules remain the source of truth.

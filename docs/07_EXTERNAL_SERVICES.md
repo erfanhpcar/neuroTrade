@@ -51,6 +51,7 @@ Contract notes:
 - No private API key. Public market data only.
 - `fetch_ohlcv` returns closed bars with `open_time` in the inclusive UTC range `[start, end]`.
 - Results are sorted by `open_time`. Identical duplicate bars collapse; conflicting duplicates raise.
+- Missing candles and off-grid / epoch-misaligned timestamps are detected by `inspect_ohlcv` / `inspect_series`. `require_contiguous_ohlcv` is the fail-closed helper for later dataset persistence. Providers log integrity issues; they do not raise on gaps (REST pagination newest-first is not a defect).
 - `latest_snapshot` uses the last bar with `open_time <= timestamp` and never a later bar.
 - Prices/volume are `Decimal`. Naive timestamps are rejected.
 - `ReplayMarketDataProvider` is the offline implementation for unit tests and later local replay. It loads JSON fixtures from disk and performs no network I/O.
@@ -58,7 +59,7 @@ Contract notes:
 - The adapter always sends `category` (default `spot`) so Bybit cannot silently default the request to `linear`.
 - Historical fetch paginates backward (max 1000 bars/page) and applies a configured per-endpoint rate-limit budget plus exponential backoff+jitter on HTTP 429, HTTP 403 "access too frequent", and `retCode=10006`.
 - Official HTTP IP ceiling is 600 requests / 5 seconds across `api.bybit.com`. The kline adapter default is a conservative 10 req/s and is injectable.
-- Binance REST, WebSocket, Parquet, and missing-candle detection are later Phase 2 items.
+- Binance REST, WebSocket, and Parquet are later Phase 2 items.
 - Unit tests must not depend on the public internet (`ReplayMarketDataProvider` or `httpx.MockTransport`).
 
 ## Execution

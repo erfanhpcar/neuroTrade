@@ -1,5 +1,12 @@
 """Market-data boundary errors. These are not HTTP or persistence errors."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.market_data.integrity import OhlcvIntegrityReport
+
 
 class MarketDataError(ValueError):
     """Invalid market-data input, payload, or provider lookup."""
@@ -19,6 +26,18 @@ class InsufficientMarketHistory(MarketDataError):
 
 class ConflictingDuplicateBars(MarketDataError):
     """Two bars share ``open_time`` but disagree on OHLCV values."""
+
+
+class IncompleteOhlcvHistory(MarketDataError):
+    """OHLCV bars are gapped, off the timeframe grid, or epoch-misaligned.
+
+    The detector report is attached as ``report`` so callers can log missing
+    open times without parsing the message.
+    """
+
+    def __init__(self, message: str, *, report: OhlcvIntegrityReport) -> None:
+        super().__init__(message)
+        self.report = report
 
 
 class UnsupportedTimeframe(MarketDataError):

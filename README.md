@@ -22,13 +22,22 @@ make backend-typecheck    # mypy app
 make backend-test         # pytest
 make backend-check        # lint + typecheck + tests
 make backend-run          # uvicorn control plane on 127.0.0.1:8000
+
+make frontend-install     # npm install in frontend/
+make frontend-lint        # next lint
+make frontend-typecheck   # tsc --noEmit
+make frontend-test        # vitest run
+make frontend-build       # next build
+make frontend-check       # lint + typecheck + tests + build
+make frontend-run         # next dev on 127.0.0.1:3000
 ```
 
-Copy `.env.example` to `.env` for local overrides. Do not commit secrets.
+Copy `.env.example` to `.env` for backend overrides. Copy `frontend/.env.example` to `frontend/.env.local` if the control plane is not on `http://127.0.0.1:8000`. Do not commit secrets. Do not put secrets in `NEXT_PUBLIC_*`.
 
 ## Current status
 
 Phase 0 (Repository Foundation) is in progress:
 
 - Backend FastAPI control plane and `GET /api/health` exist.
-- Frontend, Docker Compose, and CI are not implemented yet.
+- Next.js operator shell displays liveness and trading mode (PAPER by default).
+- Docker Compose, trading-worker, and CI are not implemented yet.

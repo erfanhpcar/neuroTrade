@@ -25,10 +25,10 @@
 
 Context: `AGENTS.md`, `00_INDEX`, `01_ARCH_OVERVIEW`, `09_PROJECT_TREE`, `14_DOCKER_DEPLOYMENT`, `16_CODING_AGENT_GUIDELINES`.
 
-- [ ] ساخت/تکمیل `backend/`, `frontend/`, `.github/workflows/` با حفظ `AGENTS.md`های scoped. *(backend skeleton started; frontend and CI workflows remain)*
+- [ ] ساخت/تکمیل `backend/`, `frontend/`, `.github/workflows/` با حفظ `AGENTS.md`های scoped. *(backend + frontend shells exist; CI workflows remain)*
 - [x] Python project با `pyproject.toml` و lint/typecheck/test.
 - [x] FastAPI minimal app + `/api/health`.
-- [ ] Next.js minimal dashboard.
+- [x] Next.js minimal dashboard.
 - [ ] Dockerfile backend/frontend.
 - [ ] Compose برای postgres/redis/backend/trading-worker/frontend.
 - [x] `.env.example` و `.gitignore`.

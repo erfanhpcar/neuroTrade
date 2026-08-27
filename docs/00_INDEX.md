@@ -74,4 +74,4 @@
 | AI | خاموش/اختیاری در MVP |
 | Deployment | Docker Compose |
 
-> وضعیت فعلی مخزن: **Phase 0 in progress**. Backend FastAPI skeleton and `GET /api/health` exist. Docker Compose, frontend, and CI are not done. Documents 00–17 and repository `AGENTS.md` rules remain the source of truth before further implementation.
+> وضعیت فعلی مخزن: **Phase 0 in progress**. Backend FastAPI health and a Next.js operator shell exist. Docker Compose, trading-worker process, and CI are not done. Documents 00–17 and repository `AGENTS.md` rules remain the source of truth before further implementation.

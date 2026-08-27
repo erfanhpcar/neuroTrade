@@ -16,6 +16,9 @@ from app.market_data.base import (
 )
 from app.market_data.errors import (
     ConflictingDuplicateBars,
+    CorruptOhlcvDataset,
+    EmptyOhlcvDataset,
+    ImmutableOhlcvDataset,
     IncompleteOhlcvHistory,
     InsufficientMarketHistory,
     InvalidMarketDataRange,
@@ -23,6 +26,7 @@ from app.market_data.errors import (
     MarketDataHttpError,
     MarketDataRateLimited,
     UnknownMarketSeries,
+    UnknownOhlcvDataset,
     UnsupportedMarketCategory,
     UnsupportedTimeframe,
 )
@@ -32,12 +36,21 @@ from app.market_data.integrity import (
     inspect_series,
     require_contiguous_ohlcv,
 )
+from app.market_data.parquet import (
+    OhlcvDatasetManifest,
+    OhlcvParquetFile,
+    ParquetOhlcvStore,
+    path_symbol,
+)
 from app.market_data.replay import ReplayMarketDataProvider
 from app.market_data.timeframe import timeframe_duration, timeframe_duration_seconds
 
 __all__ = [
     "OHLCV_SCHEMA_VERSION",
     "ConflictingDuplicateBars",
+    "CorruptOhlcvDataset",
+    "EmptyOhlcvDataset",
+    "ImmutableOhlcvDataset",
     "IncompleteOhlcvHistory",
     "InsufficientMarketHistory",
     "InvalidMarketDataRange",
@@ -45,16 +58,21 @@ __all__ = [
     "MarketDataHttpError",
     "MarketDataProvider",
     "MarketDataRateLimited",
+    "OhlcvDatasetManifest",
     "OhlcvIntegrityReport",
+    "OhlcvParquetFile",
     "OhlcvSeries",
+    "ParquetOhlcvStore",
     "ReplayMarketDataProvider",
     "UnknownMarketSeries",
+    "UnknownOhlcvDataset",
     "UnsupportedMarketCategory",
     "UnsupportedTimeframe",
     "hash_ohlcv_bars",
     "inspect_ohlcv",
     "inspect_series",
     "normalize_bars",
+    "path_symbol",
     "require_contiguous_ohlcv",
     "timeframe_duration",
     "timeframe_duration_seconds",

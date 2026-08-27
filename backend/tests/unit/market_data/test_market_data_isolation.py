@@ -9,6 +9,7 @@ CONTRACT_FILES = {
     "base.py",
     "errors.py",
     "integrity.py",
+    "parquet.py",
     "rate_limit.py",
     "replay.py",
     "timeframe.py",
@@ -78,3 +79,18 @@ def test_market_data_package_does_not_import_execution_or_control_plane() -> Non
                 assert not node.module.startswith("app.main")
                 assert not node.module.startswith("app.infrastructure")
                 assert not node.module.startswith("app.config")
+
+
+def test_parquet_store_may_import_pyarrow_but_not_httpx() -> None:
+    imported = _imported_roots(MARKET_DATA_ROOT / "parquet.py")
+    assert "pyarrow" in imported
+    assert "httpx" not in imported
+
+
+def test_non_parquet_contract_modules_do_not_import_pyarrow() -> None:
+    offenders: list[str] = []
+    for name in sorted(CONTRACT_FILES - {"parquet.py"}):
+        imported = _imported_roots(MARKET_DATA_ROOT / name)
+        if "pyarrow" in imported:
+            offenders.append(name)
+    assert offenders == []

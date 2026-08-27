@@ -38,6 +38,7 @@ neuroTrade/
 │   │   │   ├── replay.py          # fixture-backed provider; no network
 │   │   │   ├── bybit.py           # public REST kline adapter (no API key)
 │   │   │   ├── integrity.py       # missing-candle / off-grid detector
+│   │   │   ├── parquet.py         # immutable OHLCV Parquet store + metadata
 │   │   │   ├── timeframe.py       # fixed bar durations for gap detection
 │   │   │   ├── rate_limit.py      # per-endpoint budget + backoff
 │   │   │   └── binance.py         # later public REST/WS adapter

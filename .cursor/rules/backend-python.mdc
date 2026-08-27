@@ -1,0 +1,19 @@
+---
+description: "Backend Python, strategy, risk, execution, persistence, and testing rules"
+globs: "backend/**/*.py"
+alwaysApply: false
+---
+
+Follow @AGENTS.md and @backend/AGENTS.md.
+
+Key backend constraints:
+- Domain/strategy/risk code remains independent from FastAPI, Redis, CCXT, and specific exchanges.
+- Use `Decimal` for executable and persisted financial values; vectorized research floats are allowed only behind validated boundaries.
+- Keep strategy signal generation pure, deterministic, side-effect free, and identical between backtest and live/paper paths.
+- No network/database/time/random access inside `Strategy.generate_signal()`.
+- Risk approval is mandatory before order execution.
+- Order submission is idempotency-aware; after ambiguous timeout reconcile before retry.
+- External I/O is async where appropriate; pure calculations remain synchronous.
+- PostgreSQL is transactional truth; Redis is not durable trading state.
+- Add regression tests for look-ahead, financial boundary, order-state, duplicate-order, timeout, restart, and reconciliation bugs.
+- Never use real exchange credentials in tests.

@@ -1,84 +1,69 @@
-# ۰۱ — نمای کلی معماری (Architecture Overview)
+# 01 — Architecture Overview
 
-> این سند معادل رسمی `SYSTEM_DESIGN.md` است. برای یکپارچگی نام‌گذاری فقط از `01_ARCH_OVERVIEW.md` استفاده کنید.
+## هدف
 
-## ۱. ساختار کلان (High-Level Architecture)
+neuroTrade یک **Quant/Systematic Trading Platform** است. هسته معامله با قوانین قابل اندازه‌گیری و قابل تکرار کار می‌کند؛ LLM جزو مسیر اجباری تصمیم‌گیری نیست.
 
-سیستم **دکاپل** است: هسته AI/معاملات در **Python (FastAPI)** و داشبورد در **Next.js**. ارتباط: **REST** (تنظیمات، تاریخچه) + **WebSocket** (رویداد زنده).
+## معماری کلان
 
-> **استقرار:** کل پلتفرم با **Docker Compose** بالا می‌آید (postgres، redis، backend، frontend) — جزئیات و دستورات در `14_DOCKER_DEPLOYMENT.md`. این روش رسمی اجراست؛ نصب پراکندهٔ سرویس‌ها روی میزبان توصیه نمی‌شود.
-
+```text
+Next.js Dashboard
+      │ REST / WebSocket
+      ▼
+FastAPI Control Plane ───── PostgreSQL
+      │                      ▲
+      │                      │
+      └──── Redis Pub/Sub ───┤
+                             │
+                    Trading Worker
+                    ├─ Market Data
+                    ├─ Strategy Engine
+                    ├─ Portfolio Engine
+                    ├─ Risk Engine
+                    ├─ Execution Engine
+                    └─ Reconciliation
+                             │
+                       Exchange Adapter
+                             │
+                   Bybit / Binance / TTT
 ```
-┌─────────────────────────────────────────────────────────────┐
-│           Frontend Dashboard (Next.js + shadcn/ui)          │
-│  Kill-Switch │ Semi/Full │ Signals │ Analytics │ Settings   │
-└───────────────────────────┬─────────────────────────────────┘
-                            │ REST + WebSocket
-┌───────────────────────────▼─────────────────────────────────┐
-│              Backend AI Engine (FastAPI)                     │
-│  Zone Gate (Pandas) → LLM فقط با ماشه │ Risk │ CCXT         │
-│  PostgreSQL │ Redis (pub/sub for WS)                        │
-└───────────────┬─────────────────────────────┬───────────────┘
-                │                             │
-        ┌───────▼────────┐            ┌───────▼────────┐
-        │ Data + News    │            │ Exchange       │
-        │ CCXT OHLCV     │            │ Testnet/Live   │
-        │ CryptoPanic    │            │ via CCXT       │
-        └────────────────┘            └────────────────┘
-```
 
-## ۲. پشته فناوری
+## اصل جداسازی Control Plane و Data Plane
 
-| لایه | فناوری | دلیل |
-|------|--------|------|
-| فرانت‌اند | Next.js App Router + Tailwind + **shadcn/ui** | کامپوننت‌های دسترس‌پذیر، تم دارک، Dialog/Table برای داشبورد ترید |
-| بک‌اند | FastAPI (async) | اکوسیستم AI، WebSocket، سرعت |
-| ایجنت‌ها | LangGraph | گراف حلقوی، State مشترک |
-| DB | PostgreSQL | سیگنال‌ها، پوزیشن‌ها، تنظیمات |
-| کش / WS | Redis | Pub/Sub برای broadcast به چند کلاینت |
-| صرافی | CCXT async | یک API برای چند صرافی |
-| LLM | **OpenRouter** (`AsyncOpenAI`) — مدل‌ها فقط از env | هدف <۲۰$/ماه — `07`, `12` |
-| Zone Gate | Pandas در `core/zone_trigger.py` | رد ~۹۰٪ چرخه‌ها قبل از LLM |
+FastAPI مسئول HTTP/WS، تنظیمات، مشاهده تاریخچه، شروع Backtest و فرمان‌های اپراتور است. حلقه معاملات در process مستقل `trading-worker` اجرا می‌شود. Restart شدن API نباید باعث توقف یا تکرار ناخواسته Order شود.
 
-## ۳. زیرسیستم چندعاملی
+## موتورهای اصلی
 
-| # | نام | نوع | وظیفه |
-|---|-----|-----|--------|
-| 0 | Data Retriever | **کد پایتون** (بدون LLM) | `fetch_ohlcv`, `fetch_order_book`, LTF candles، اخبار |
-| 0b | Zone Gate | **Pandas** | آیا قیمت در زون S/D است؟ اگر نه → پایان چرخه |
-| 1 | Technical Strategist | LLM | S/D، Fresh Zones (RBD/DBR)، Confluence LTF — `02` §۰، `08` |
-| 2 | Sentiment Analyst | LLM (mini/DeepSeek) | فقط پس از Gate — `08` |
-| 3 | Decision Agent | **Claude (Trigger)** | BUY/SELL/HOLD — فقط پس از Gate — `08` |
-| — | Risk Firewall | **کد قطعی** | پوزیشن‌سایز، اعتبارسنجی SL/TP، اجرا CCXT |
+1. **Market Data Engine**: دریافت/نرمال‌سازی OHLCV، ticker، trades و در صورت نیاز order book/funding/OI.
+2. **Strategy Engine**: تولید Signal بدون دسترسی مستقیم به صرافی و بدون تعیین حجم نهایی.
+3. **Portfolio Engine**: exposure، equity، positions و realized/unrealized PnL.
+4. **Risk Engine**: approve/reject، position sizing و hard limits.
+5. **Execution Engine**: تبدیل OrderIntent به سفارش واقعی/شبیه‌سازی‌شده، idempotency و precision.
+6. **Reconciliation Engine**: تطبیق DB با وضعیت واقعی صرافی.
+7. **Backtest Engine**: اجرای همان Strategy + Risk interface روی داده تاریخی.
 
-جریان داده: Retriever → **Zone Gate** → (اگر hit) Strategist ∥ Sentiment → Decision (Claude) → Risk → Exchange.  
-فرکانس: `1h` = هر ۱۵ دقیقه، `4h` = هر ۳۰ دقیقه — `12_COST_OPTIMIZATION.md`.
+## Deployment style
 
-## ۴. حالت‌های عملیاتی
+نسخه اولیه **Modular Monolith + Worker** است، نه Microservices. تا زمانی که scaling واقعی نیاز نشده، جداسازی deployment سرویس‌ها ممنوع است مگر دلیل اندازه‌گیری‌شده وجود داشته باشد.
 
-| حالت | `trading_mode` | رفتار |
-|------|----------------|--------|
-| خاموش | `is_active=false` | هیچ چرخه‌ای اجرا نمی‌شود |
-| نیمه‌اتومات | `SEMI` | پس از Risk، `SIGNAL_APPROVAL_REQUEST` به UI |
-| تمام‌اتومات | `FULL` | اجرای مستقیم پس از Risk |
-| تعلیق | `SUSPENDED` | پس از Kill-Switch تا فعال‌سازی دستی |
+## State ownership
 
-## ۵. امنیت (Risk Firewall — خلاصه)
+- PostgreSQL: Source of Truth برای signal/order/fill/position/risk/settings/backtests.
+- Redis: cache، pub/sub، distributed lock و latest snapshots؛ قابل بازسازی.
+- Exchange: حقیقت نهایی برای وضعیت واقعی balance/order/position در live.
+- Parquet: historical market data و datasetهای research.
 
-جزئیات در `03_RISK_FIREWALL.md`:
+## Operational modes
 
-1. API Key صرافی: **بدون Withdrawal**
-2. سقف ضرر روزانه ۳٪ — توقف تا نیمه‌شب UTC
-3. حداکثر ۳ پوزیشن باز همزمان
-4. اعتبارسنجی Pydantic قبل از `create_order`
+- `PAPER`: هیچ order واقعی ارسال نمی‌شود.
+- `SEMI`: Signal + Risk → تأیید اپراتور → Execution.
+- `FULL`: Signal + Risk → Execution مستقیم؛ فقط پس از promotion رسمی.
+- `HALTED`: order جدید ممنوع؛ positionهای موجود طبق policy مدیریت می‌شوند.
 
-## ۶. اسناد مرتبط
+## Non-goals در MVP
 
-- ایجنت‌ها و State: `02_AGENT_PROTOCOLS.md`
-- API و WS: `10_REST_API.md`
-- UI: `05_DASHBOARD_UI.md`
-- شروع کار: `11_IMPLEMENTATION_GUIDE.md`
-- هزینه API: `12_COST_OPTIMIZATION.md`
-- استراتژی S/D: `02_AGENT_PROTOCOLS.md` بخش ۰
-- یادگیری Post-Mortem: `13_POST_MORTEM_REFLECTION.md`
-- Docker: `14_DOCKER_DEPLOYMENT.md`
+- HFT / sub-second trading
+- تصمیم مستقیم LLM برای معامله
+- self-learning live
+- microservice architecture
+- وابستگی به یک exchange خاص

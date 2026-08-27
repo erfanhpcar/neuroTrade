@@ -1,140 +1,85 @@
-این سند جزئیات دقیق ساختار صفحات، کامپوننت‌ها، مدیریت وضعیت (State Management) و رفتارهای بلادرنگ رابط کاربری را در فریم‌ورک **Next.js (App Router)** مشخص می‌کند.
+# 05 — Dashboard UI
 
-## ۰. چرا shadcn/ui؟ (تصمیم معماری UI)
+Next.js App Router + Tailwind + shadcn/ui.
 
-برای داشبورد تریدینگ، **shadcn/ui** (روی Radix UI + Tailwind) انتخاب رسمی پروژه است — نه کتابخانه کامپوننت بسته‌بندی‌شده جدا.
+## صفحات
 
-| مزیت | کاربرد در این پروژه |
-|------|---------------------|
-| کد در `components/ui/` مال شماست | سفارشی‌سازی Kill-Switch و جدول PnL بدون جنگ با CSS خارجی |
-| دسترس‌پذیری (a11y) | Dialog تأیید SEMI، Alert برای SUSPENDED |
-| تم دارک | `class="dark"` در `layout.tsx` — هماهنگ با پالت زیر |
-| یکپارچگی Tailwind | همان توکن‌های `#10B981` / `#EF4444` در `tailwind.config` |
-
-### نصب اولیه
-
-```bash
-npx shadcn@latest init
-npx shadcn@latest add button card dialog table badge switch alert tabs separator scroll-area
+```text
+/
+/markets
+/strategies
+/strategies/[id]
+/signals
+/orders
+/positions
+/trades
+/backtests
+/backtests/[id]
+/risk
+/system
 ```
 
-### نگاشت کامپوننت → shadcn
+## Dashboard اصلی
 
-| کامپوننت پروژه | پایه shadcn |
-|----------------|-------------|
-| `ApprovalModal.tsx` | `Dialog` + `Button` (variant destructive / default) |
-| `PromptTuningReview.tsx` | `Dialog` + `ScrollArea` + diff دو ستونه (قبل/بعد) |
-| `KillSwitch.tsx` | `AlertDialog` (تأیید دو مرحله‌ای) |
-| `ActiveTrades.tsx` | `Table` |
-| `AgentStatus.tsx` | `Card` + `Badge` |
-| سوئیچ SEMI/FULL | `Switch` |
-| ترمینال استدلال | `ScrollArea` + `Card` |
+نمایش:
 
-### ساختار پوشه (به‌روز)
+- system mode: PAPER / SEMI / FULL / HALTED
+- worker heartbeat و آخرین market snapshot
+- equity / realized & unrealized PnL
+- open risk و daily loss budget
+- open positions / pending orders
+- latest strategy signals
+- reconciliation warnings
 
-```
-src/components/
-├── ui/                  # تولیدشده توسط shadcn (دکمه، دیالوگ، ...)
-├── layout/
-│   ├── Sidebar.tsx
-│   └── Header.tsx
-├── AgentStatus.tsx
-├── ActiveTrades.tsx
-├── ApprovalModal.tsx
-└── KillSwitch.tsx
-```
+## کنترل‌های عملیاتی
 
-قرارداد API: `10_REST_API.md`. تایپ‌ها: `src/types/index.ts`.
+### SEMI approval
 
-## ۱. ساختار پوشه‌ها و مسیرها (Routing Structure)
+Modal باید این موارد را نشان دهد:
 
-داشبرد از معماری مدرن App Router استفاده می‌کند:
+- strategy + version
+- symbol/side/timeframe
+- trigger/entry/stop/exit policy
+- calculated size
+- estimated risk
+- RiskDecision reasons
+- signal age
 
-Plaintext
+Approve فقط اگر signal هنوز معتبر و state idempotent باشد.
 
-```
-src/app/
-├── layout.tsx              # شالوده اصلی پنل، سایدبار منو و تم لایت/دارک
-├── page.tsx                # صفحه اصلی داشبورد (نمای کلی بازار، پوزیشن‌های باز و دکمه اضطراری)
-├── signals/
-│   └── page.tsx            # تاریخچه استدلال‌ها و تصمیمات ایجنت‌ها به همراه فیلتر پیشرفته
-├── analytics/
-│   └── page.tsx            # نمودارهای رشد حساب، ضریب سود (Profit Factor) و دروپ‌داون
-└── settings/
-    ├── page.tsx            # فرم مدیریت ریسک، API keys
-    └── prompt-tuning/
-        └── page.tsx        # بررسی پیشنهادهای ممیزی — Approve/Reject/Rollback (13 §د)
+### HALT
 
-```
+دکمه مستقل برای جلوگیری از order جدید. این دکمه به معنی بستن فوری positionها نیست.
 
-## ۲. چیدمان صفحه اصلی (Dashboard Layout & Wireframe)
+### FLATTEN ALL
 
-صفحه اصلی پنل (`/`) به صورت یکپارچه و بدون نیاز به اسکرول عمودی شدید (Grid System) چیده می‌شود تا در یک نگاه کل وضعیت سیستم قابل رصد باشد:
+عملیات destructive و جداگانه با تأیید دو مرحله‌ای. نتیجه cancel/closeها باید از backend گزارش شود.
 
-Plaintext
+## Backtest UI
 
-```
-+-----------------------------------------------------------------------------------+
-|  [LOGO] AI Trading Engine    |  MODE: [SEMI / FULL]  |  [EMERGENCY KILL SWITCH]   |
-+-----------------------------------------------------------------------------------+
-| [ کادر وضعیت زنده ایجنت‌ها ]  | [ پوزیشن‌های باز صرافی ]                           |
-| - Retriever: OK (2 min ago)  | - BTC/USDT | LONG  | Size: 0.05  | PnL: +$45.20    |
-| - Strategist: Waiting...     | - ETH/USDT | SHORT | Size: 1.20  | PnL: -$12.10    |
-| - Sentiment: Scoring news... |                                                    |
-+-----------------------------------------------------------------------------------+
-| [ ترمینال استدلال لحظه‌ای هوش مصنوعی ]  | [ بالانس و ریسک لحظه‌ای ]                  |
-| > Agent: Tapped into 4H Demand.       | - Total Balance: $10,450 USD               |
-| > News: Sentiment score is +0.65      | - Daily Drawdown: 0.8% / 3.0% (Safe)       |
-| > Decision: Waiting for Risk Agent... | - Open Risk: 2.0%                          |
-+-----------------------------------------------------------------------------------+
+- equity curve
+- drawdown curve
+- monthly returns
+- win rate / expectancy / profit factor
+- Sharpe/Sortino در صورت تعریف صحیح sampling
+- fees/slippage/funding breakdown
+- in-sample vs out-of-sample
+- parameter/config version
 
-```
+## WebSocket events
 
-## ۳. کامپوننت‌های کلیدی و مدیریت وضعیت (Key Interactive Components)
+- `SYSTEM_STATUS`
+- `MARKET_STATUS`
+- `SIGNAL_CREATED`
+- `RISK_DECISION`
+- `ORDER_UPDATE`
+- `POSITION_UPDATE`
+- `PORTFOLIO_UPDATE`
+- `RECONCILIATION_ALERT`
+- `BACKTEST_PROGRESS`
 
-### الف) ماژول اتصال وب‌ساکت (WebSocket Context Provider)
+پس از reconnect، UI باید state مهم را با REST مجدداً sync کند و فقط به cache وب‌سوکت اعتماد نکند.
 
-یک Context در ریشه برنامه (Root) تعریف می‌شود که به محض لود شدن فرانت‌اند، اتصال را با FastAPI برقرار می‌کند. در صورت قطع شدن اینترنت، سیستم باید مکانیسم **Exponential Backoff** (تلاش مجدد با فواصل زمانی افزایشی) را برای اتصال مجدد بدون کرش کردن UI اجرا کند.
+## API secrets
 
-### ب) سوئیچ سه‌وضعیت اردرها و تاییدیه (Approval Pop-up)
-
-وقتی سیستم روی حالت `SEMI` (نیمه‌اتوماتیک) تنظیم شده است و بک‌اند پکت `SIGNAL_APPROVAL_REQUEST` را از طریق وب‌ساکت می‌فرستد، یک مودال (Modal) با بالاترین اولویت روی صفحه باز می‌شود:
-
-
-|                                                                                               |                                                                                                                                             |
-| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| **بخش‌های مودال**                                                                             | **دکمه‌های اکشن**                                                                                                                           |
-| نمایش تمام محاسبات ریسک (نقطه ورود، استاپ دقیق، حجم پوزیشن و دلیل فاندامنتال متنی هوش مصنوعی) | **دکمه سبز (APPROVE):** ارسال سیگنال تایید به بک‌اند برای اجرای آنی در صرافی. **دکمه قرمز (REJECT):** لغو موقعیت و لاگ کردن علت رد تریدر. |
-
-
-### ج) بررسی پیشنهاد پرامپت (Prompt Tuning Review — Human-in-the-loop)
-
-پس از `PROMPT_TUNING_REQUEST` از WebSocket (یا badge در Sidebar: «۲ پیشنهاد پرامپت»)، مسیر `/settings/prompt-tuning` باز می‌شود.
-
-| بخش UI | رفتار |
-|--------|--------|
-| بنر `ANOMALOUS` | پس‌زمینه `#F59E0B` — متن: هفته غیرعادی؛ تأیید فقط با آگاهی |
-| Diff | ستون چپ `content_before`، راست `content_after` (monospace) |
-| دلیل ممیزی | `audit_reasoning` + لینک به `audit_reports/YYYY-WW.md` |
-| **Approve** | `POST .../approve` — برای ANOMALOUS ابتدا `AlertDialog` دوم با checkbox «این قانون را برای بازار عادی هم می‌پذیرم» |
-| **Reject** | فیلد اجباری `reason` — ذخیره برای ممیزی‌های بعد |
-| **Rollback** | لیست `prompt_versions` — بازگشت بدون LLM |
-
-> **خط قرمز:** هیچ دکمه‌ای در UI نباید پرامپت را «خودکار» اعمال کند؛ فقط APIهای بالا.
-
-### د) دکمه اضطراری (Kill-Switch Component)
-
-یک کامپوننت مستقل که به هیچ وضعیت داخلی (Local State) وابستگی ندارد. با کلیک روی آن، ابتدا یک افکت لرزش (Haptic/Visual) برای جلوگیری از کلیک تصادفی فعال می‌شود، سپس درخواست صادر شده و بلافاصله استیت کل پلتفرم در فرانت‌اند به رنگ قرمز متالیک (`bg-red-900`) تغییر می‌کند تا نشان دهد سیستم قفل شده است.
-
-## ۴. سیستم رنگ‌بندی و راهنمای بصری وضعیت‌ها (UI Theme Ledger)
-
-برای پنل تریدینگ، رنگ‌ها بار معنایی و امنیتی دارند:
-
-- 🟢 **سبز زنده (**`#10B981`**):** پوزیشن‌های در سود، سیستم فعال در حالت Full-Auto، ورود پول به زون تقاضا.
-- 🔴 **قرمز هشداری (**`#EF4444`**):** پوزیشن‌های در ضرر، فعال شدن Kill-Switch، لمس زون عرضه.
-- 🟡 **زرد کهربایی (**`#F59E0B`**):** سیستم در حالت نیمه‌اتوماتیک (منتظر تایید تریدر)، افت سرعت پاسخ‌دهی APIها.
-- 🔵 **آبی سایبر (**`#3B82F6`**):** پردازش در جریان ایجنت‌های هوش مصنوعی (در حال تفکر یا استدلال).
-
-خب، تبریک می‌گم! با ثبت این سند، ما اکنون **مانیفست کامل معماری سیستم از A تا Z** رو در اختیار داریم: از مدل داده دیتابیس و فرمول ریاضی لایه ریسک گرفته تا گراف تعاملی ایجنت‌ها و ماژول‌های فرانت‌اند.
-
-حالا پلتفرم آماده‌ی ساخته شدنه. به عنوان گام بعدی، دو مسیر پیش رو داریم: یا یک فایل تکمیلی برای **«معماری بک‌تست (Backtesting Framework)»** بنویسیم تا سیستم بتونه قبل از لایو شدن روی دیتای گذشته تست بشه، یا اینکه مستقیماً وارد محیط کدنویسی کرسر بشیم و اولین خط کدهای بک‌اند رو استارت بزنیم.
+API key/secret هیچ‌وقت در browser localStorage، client bundle یا `NEXT_PUBLIC_*` قرار نمی‌گیرد. مدیریت secret سمت backend/deployment است.

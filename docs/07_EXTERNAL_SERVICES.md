@@ -54,8 +54,12 @@ Contract notes:
 - `latest_snapshot` uses the last bar with `open_time <= timestamp` and never a later bar.
 - Prices/volume are `Decimal`. Naive timestamps are rejected.
 - `ReplayMarketDataProvider` is the offline implementation for unit tests and later local replay. It loads JSON fixtures from disk and performs no network I/O.
-- Live REST/WebSocket adapters (Bybit/Binance) are not part of this increment. Do not add CCXT until a public provider is implemented.
-- Unit tests must not depend on the public internet.
+- `BybitPublicRestProvider` (`backend/app/market_data/bybit.py`) is the first public venue adapter. It calls official `GET /v5/market/kline` only, with no API keys and no CCXT.
+- The adapter always sends `category` (default `spot`) so Bybit cannot silently default the request to `linear`.
+- Historical fetch paginates backward (max 1000 bars/page) and applies a configured per-endpoint rate-limit budget plus exponential backoff+jitter on HTTP 429, HTTP 403 "access too frequent", and `retCode=10006`.
+- Official HTTP IP ceiling is 600 requests / 5 seconds across `api.bybit.com`. The kline adapter default is a conservative 10 req/s and is injectable.
+- Binance REST, WebSocket, Parquet, and missing-candle detection are later Phase 2 items.
+- Unit tests must not depend on the public internet (`ReplayMarketDataProvider` or `httpx.MockTransport`).
 
 ## Execution
 

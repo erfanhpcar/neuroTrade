@@ -1,0 +1,76 @@
+# neuroTrade local stack (Phase 0). Backend and trading-worker share one image
+# and codebase but run different commands. PostgreSQL is the source of truth;
+# Redis is cache/pub-sub only. Default trading mode is PAPER.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: neurotrade
+      POSTGRES_PASSWORD: neurotrade
+      POSTGRES_DB: neurotrade
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neurotrade"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      APP_ENV: development
+      TRADING_MODE: PAPER
+      DATABASE_URL: postgresql+asyncpg://neurotrade:neurotrade@postgres:5432/neurotrade
+      REDIS_URL: redis://redis:6379/0
+      FRONTEND_ORIGIN: http://localhost:3000
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  trading-worker:
+    build:
+      context: ./backend
+    command: ["python", "-m", "app.workers.trading_worker"]
+    environment:
+      APP_ENV: development
+      TRADING_MODE: PAPER
+      DATABASE_URL: postgresql+asyncpg://neurotrade:neurotrade@postgres:5432/neurotrade
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      NODE_ENV: production
+      BACKEND_URL: http://backend:8000
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
